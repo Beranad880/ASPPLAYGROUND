@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using WebApplicationASP01.Hubs;
 using WebApplicationASP01.Services;
 
@@ -16,12 +17,21 @@ if (!string.IsNullOrEmpty(port))
 }
 
 // Add services to the container
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 builder.Services.AddControllers();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<ChatHistoryService>();
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 // Configure HTTP pipeline
 if (!app.Environment.IsDevelopment())

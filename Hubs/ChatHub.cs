@@ -34,7 +34,8 @@ public class ChatHub : Hub
             user = user.Substring(0, 30);
         }
 
-        var chatMessage = new ChatMessage(user, message, DateTime.Now);
+        var clientIp = GetClientIpAddress();
+        var chatMessage = new ChatMessage(user, message, DateTime.Now, false, clientIp);
         _historyService.AddMessage(chatMessage);
 
         await Clients.All.SendAsync("ReceiveMessage", new
@@ -42,7 +43,8 @@ public class ChatHub : Hub
             user = chatMessage.User,
             message = chatMessage.Message,
             timestamp = chatMessage.Timestamp.ToString("HH:mm:ss"),
-            isSystem = false
+            isSystem = false,
+            ipAddress = chatMessage.IpAddress
         });
     }
 
@@ -72,12 +74,16 @@ public class ChatHub : Hub
         
         await Clients.All.SendAsync("UpdateUserCount", _connectedUsersCount);
 
+        var clientIp = GetClientIpAddress();
+        await Clients.Caller.SendAsync("SetUserIp", clientIp);
+
         var history = _historyService.GetRecentMessages().Select(m => new
         {
             user = m.User,
             message = m.Message,
             timestamp = m.Timestamp.ToString("HH:mm:ss"),
-            isSystem = m.IsSystem
+            isSystem = m.IsSystem,
+            ipAddress = m.IpAddress
         });
 
         await Clients.Caller.SendAsync("LoadHistory", history);
@@ -91,5 +97,39 @@ public class ChatHub : Hub
         await Clients.All.SendAsync("UpdateUserCount", _connectedUsersCount);
 
         await base.OnDisconnectedAsync(exception);
+    }
+
+    private string GetClientIpAddress()
+    {
+        var httpContext = Context.GetHttpContext();
+        if (httpContext == null) return "127.0.0.1";
+
+        if (httpContext.Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor) && !string.IsNullOrWhiteSpace(forwardedFor))
+        {
+            var ip = forwardedFor.ToString().Split(',').FirstOrDefault()?.Trim();
+            if (!string.IsNullOrEmpty(ip)) return ip;
+        }
+
+        if (httpContext.Request.Headers.TryGetValue("X-Real-IP", out var realIp) && !string.IsNullOrWhiteSpace(realIp))
+        {
+            var ip = realIp.ToString().Trim();
+            if (!string.IsNullOrEmpty(ip)) return ip;
+        }
+
+        var remoteIp = httpContext.Connection.RemoteIpAddress;
+        if (remoteIp != null)
+        {
+            if (remoteIp.IsIPv4MappedToIPv6)
+            {
+                return remoteIp.MapToIPv4().ToString();
+            }
+            if (remoteIp.ToString() == "::1")
+            {
+                return "127.0.0.1";
+            }
+            return remoteIp.ToString();
+        }
+
+        return "127.0.0.1";
     }
 }

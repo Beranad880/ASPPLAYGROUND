@@ -110,6 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const soundIcon = document.getElementById("soundIcon");
     const clearChatBtn = document.getElementById("clearChatBtn");
     const shareBtn = document.getElementById("shareBtn");
+    const userIpText = document.getElementById("userIpText");
     const scrollToBottomBtn = document.getElementById("scrollToBottomBtn");
     const toastNotification = document.getElementById("toastNotification");
     const toastMessage = document.getElementById("toastMessage");
@@ -258,6 +259,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Set User IP
+    connection.on("SetUserIp", (ip) => {
+        if (userIpText && ip) {
+            userIpText.textContent = ip;
+        }
+    });
+
     // Update user count
     connection.on("UpdateUserCount", (count) => {
         if (onlineCountBadge) {
@@ -323,11 +331,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${!isMe ? `
                         <div class="msg-header">
                             <span class="msg-author" style="color: ${avatarColor};">${escapeHtml(data.user)}</span>
+                            ${data.ipAddress ? `<span class="msg-ip-badge" title="IP adresa: ${escapeHtml(data.ipAddress)}">🌐 ${escapeHtml(data.ipAddress)}</span>` : ''}
                         </div>
                     ` : ''}
                     <div class="msg-bubble" title="Klikněte pro zkopírování textu">
                         <div class="msg-text">${escapeHtml(data.message)}</div>
                         <div class="msg-meta">
+                            ${(isMe && data.ipAddress) ? `<span class="msg-meta-ip" title="Vaše IP: ${escapeHtml(data.ipAddress)}">🌐 ${escapeHtml(data.ipAddress)}</span>` : ''}
                             <span class="msg-time">${data.timestamp || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                             ${isMe ? `<span class="msg-status-icon" title="Doručeno">✓✓</span>` : ''}
                         </div>
