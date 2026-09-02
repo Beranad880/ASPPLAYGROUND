@@ -1,21 +1,17 @@
-# ⚡ SignalR Global Chat (ASP.NET Core & Razor)
+# ⚡ SignalR Global Chat & Person CRUD REST API (ASP.NET Core .NET 10)
 
-Moderní **real-time globální chatovací aplikace** postavená na **ASP.NET Core (.NET 10)**, **SignalR** a **Razor Pages** s prémiovým UI ve stylu **Glassmorphism v čistém CSS (Pure CSS)**. Umožňuje okamžitou komunikaci napříč jakýmikoli zařízeními (PC, mobil, tablet) bez nutnosti instalace jakékoli aplikace.
+Moderní webová aplikace postavená na **ASP.NET Core (.NET 10)** kombinující **SignalR Real-Time Chat** a plnohodnotné **REST API CRUD** pro správu osob s napojením na **PostgreSQL (Entity Framework Core & Render.com)**.
 
 ---
 
 ## 🌟 Hlavní funkce
 
 - ⚡ **Real-time komunikace (SignalR / WebSockets)** – bleskové doručování zpráv všem připojeným klientům v reálném čase.
-- 👥 **Živý čítač online uživatelů** – pulzující indikátor aktivně připojených zařízení.
-- 📜 **Uchování historie zpráv v paměti** – nově připojené zařízení ihned vidí předchozí konverzaci.
-- 🎨 **Moderní Pure CSS Glassmorphism** – animované ambientní světelné koule (orbs), matné skleněné karty (`backdrop-filter`), plynulé animace a typografie *Plus Jakarta Sans*.
-- 🎲 **Dynamický avatar & Kostka náhodných jmen** – barva avatara generovaná z přezdívky, generátor náhodných cool jmen (*CyberNinja*, *NeonVoyager*...).
-- 🔊 **Zvuková upozornění (Web Audio API)** – syntetizované příjemné tóny při odeslání a příjmu zprávy (s možností ztlumení 🔊/🔇).
-- 📱 **100% responzivní design pro mobily** – optimalizováno pro dotykové ovládání, virtuální klávesnice (`100dvh`) a safe area insets.
-- 🔗 **Tlačítko pro rychlé sdílení odkazu** – zkopíruje odkaz na chat do schránky s toast notifikací.
-- 📋 **Kopírování zpráv kliknutím** – kliknutím na bublinu zprávy se text zkopíruje.
-- 🚀 **Připraveno pro Render.com & Docker** – obsahuje optimalizovaný multi-stage Dockerfile a `render.yaml`.
+- 👥 **Person CRUD REST API** – kompletní správa osob s validacemi dat a asynchronním zpracováním.
+- 🐘 **PostgreSQL & EF Core** – automatické mapování entit, podpora lokální i cloudové Render databáze (`DATABASE_URL` s automatickým SSL).
+- 📜 **Swagger / OpenAPI** – interaktivní testovací rozhraní na `/swagger`.
+- 🎨 **Moderní Pure CSS Glassmorphism** – animované ambientní světelné koule, matné skleněné karty a responzivní design pro mobily.
+- 🚀 **Připraveno pro Render.com & Docker** – obsahuje multi-stage Dockerfile a `render.yaml`.
 
 ---
 
@@ -23,116 +19,193 @@ Moderní **real-time globální chatovací aplikace** postavená na **ASP.NET Co
 
 ```text
 WebApplicationASP01/
+├── App/
+│   ├── AppDbContext.cs        # EF Core kontext mapující entitu Person na tabulku persons
+│   ├── Person.cs              # Entita Person a DTO modely (CreatePersonDto, UpdatePersonDto)
+│   ├── PersonService.cs       # Asynchronní servisní vrstva pro CRUD logiku
+│   └── PersonsController.cs   # API Controller s REST endpointy (/api/persons)
 ├── Hubs/
 │   └── ChatHub.cs             # SignalR Hub pro správu WebSocket spojení a rozesílání zpráv
 ├── Models/
-│   └── ChatMessage.cs         # Záznam (record) pro formát zprávy
+│   └── ChatMessage.cs         # Záznam (record) pro formát chatové zprávy
 ├── Services/
-│   └── ChatHistoryService.cs  # In-memory správa historie posledních zpráv
+│   └── ChatHistoryService.cs  # In-memory správa historie chatu
 ├── Pages/
-│   ├── _ViewImports.cshtml    # Importy jmenných prostorů a TagHelperů
-│   ├── _ViewStart.cshtml      # Nastavení výchozího layoutu pro Razor Pages
 │   ├── Index.cshtml           # Razor šablona chatu
 │   ├── Index.cshtml.cs        # PageModel pro Index
-│   └── Shared/
-│       └── _Layout.cshtml     # Hlavní HTML kostra s Google Fonts a meta tagy
+│   └── Shared/_Layout.cshtml  # Hlavní layout
 ├── wwwroot/
-│   ├── css/
-│   │   └── chat.css           # Kompletní Pure CSS styly, animace, glassmorphism
-│   └── js/
-│       ├── chat.js            # SignalR klient, správa avatarů, zvuky, toast notifikace
-│       └── signalr.min.js     # Oficiální SignalR JS knihovna
+│   ├── css/chat.css           # Pure CSS styly, animace, glassmorphism
+│   └── js/chat.js             # SignalR klient, zvuky, notifikace
+├── appsettings.json           # Konfigurace připojení k databázi
 ├── Dockerfile                 # Multi-stage Dockerfile (.NET 10)
-├── render.yaml                # Render Blueprint pro nasazení na 1 klik
-├── Program.cs                 # Registrace služeb, SignalR, Razor Pages a portů
+├── render.yaml                # Render Blueprint pro nasazení
+├── Program.cs                 # Konfigurace služeb, DB, Swaggeru a pipeline
 └── WebApplicationASP01.csproj # Projektový soubor .NET 10
 ```
 
 ---
 
-## 💻 Lokální spuštění
+## 📡 REST API Dokumentace (Person CRUD)
 
-### Požadavky:
-- [.NET 10.0 SDK](https://dotnet.microsoft.com/download)
+Základní URL cesta: **`/api/persons`**  
+Interaktivní testovací rozhraní (Swagger): **`http://localhost:5129/swagger`** (nebo v cloudu na `https://<vasedomena>.onrender.com/swagger`)
 
-### 1. Klonování a přechod do složky:
-```bash
-cd WebApplicationASP01
+### Přehled endpointů:
+
+| Metoda | URL | Popis | Návratový kód |
+|---|---|---|---|
+| `GET` | `/api/persons` | Získá seznam všech osob | `200 OK` |
+| `GET` | `/api/persons/{id}` | Získá konkrétní osobu podle GUID | `200 OK` / `404 Not Found` |
+| `POST` | `/api/persons` | Vytvoří novou osobu | `201 Created` / `400 Bad Request` |
+| `PUT` | `/api/persons/{id}` | Upraví existující osobu podle GUID | `200 OK` / `400 Bad Request` / `404 Not Found` |
+| `DELETE` | `/api/persons/{id}` | Smaže osobu podle GUID | `204 NoContent` / `404 Not Found` |
+| `GET` | `/api/persons/ahoj` | Testovací uvítací zpráva | `200 OK` |
+
+---
+
+### 📋 JSON formáty a příklady
+
+#### 1. Vytvoření osoby (`POST /api/persons`)
+**Request Body (`application/json`):**
+```json
+{
+  "jmeno": "Jan Novák",
+  "datumNarozeni": "1990-05-15",
+  "trvalaAdresa": "Václavské náměstí 1, 110 00 Praha 1",
+  "rodneCislo": "900515/1234",
+  "telefon": "+420 777 123 456",
+  "email": "jan.novak@example.com"
+}
 ```
 
-### 2. Sestavení a spuštění:
-```bash
-dotnet run
+**Response (`201 Created`):**
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "jmeno": "Jan Novák",
+  "datumNarozeni": "1990-05-15",
+  "trvalaAdresa": "Václavské náměstí 1, 110 00 Praha 1",
+  "rodneCislo": "900515/1234",
+  "telefon": "+420 777 123 456",
+  "email": "jan.novak@example.com"
+}
 ```
 
-Aplikace se spustí na adrese:
-👉 [**`http://localhost:5129`**](http://localhost:5129)
+---
 
-### 3. Testování napříč zařízeními v lokální síti (Wi-Fi):
-1. Zjistěte svou lokální IP adresu v síti (např. pomocí `ipconfig` ve Windows – např. `192.168.1.50`).
-2. Otevřete na mobilním telefonu připojeném ke stejné Wi-Fi:
-   ```text
-   http://192.168.1.50:5129
-   ```
-3. Pište si mezi PC a mobilem v reálném čase!
+#### 2. Úprava osoby (`PUT /api/persons/{id}`)
+**URL parametr:** `{id}` = např. `3fa85f64-5717-4562-b3fc-2c963f66afa6`  
+**Request Body (`application/json`):**
+```json
+{
+  "jmeno": "Jan Novák",
+  "datumNarozeni": "1990-05-15",
+  "trvalaAdresa": "Nová ulice 123, 602 00 Brno",
+  "rodneCislo": "900515/1234",
+  "telefon": "+420 777 999 888",
+  "email": "jan.novak.novy@example.com"
+}
+```
+
+**Response (`200 OK`):**
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "jmeno": "Jan Novák",
+  "datumNarozeni": "1990-05-15",
+  "trvalaAdresa": "Nová ulice 123, 602 00 Brno",
+  "rodneCislo": "900515/1234",
+  "telefon": "+420 777 999 888",
+  "email": "jan.novak.novy@example.com"
+}
+```
+
+---
+
+#### 3. Získání všech osob (`GET /api/persons`)
+**Response (`200 OK`):**
+```json
+[
+  {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "jmeno": "Jan Novák",
+    "datumNarozeni": "1990-05-15",
+    "trvalaAdresa": "Václavské náměstí 1, 110 00 Praha 1",
+    "rodneCislo": "900515/1234",
+    "telefon": "+420 777 123 456",
+    "email": "jan.novak@example.com"
+  }
+]
+```
+
+---
+
+#### 4. Smazání osoby (`DELETE /api/persons/{id}`)
+**Response (`204 NoContent`):**
+*Tělo odpovědi je prázdné.*
+
+---
+
+## 🐘 Konfigurace databáze (PostgreSQL)
+
+Aplikace podporuje standardní ADO.NET formát i cloudový URL formát (Render/Heroku).
+
+### 1. Lokální konfigurace v `appsettings.json`:
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "postgresql://postgresrender_stv7_user:JMNbY97TnCvqfvjXCfEVTgWsDSR0aQ4m@dpg-dabtsb3tqb8s73diao30-a.frankfurt-postgres.render.com/postgresrender_stv7"
+  }
+}
+```
+
+Nebo klasický formát:
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=persondb;Username=postgres;Password=test"
+  }
+}
+```
 
 ---
 
 ## ☁️ Nasazení na Render.com
 
-Aplikace je plně připravena pro bezplatný hosting na [Render.com](https://render.com) pomocí **Dockeru**.
-
-### Možnost A: Nasazení přes GitHub (Doporučeno)
-
-1. **Nahrajte projekt na GitHub**:
+1. **Uložte a odešlete kód na GitHub**:
    ```bash
    git add .
-   git commit -m "Initial commit for Render deployment"
+   git commit -m "Update Person CRUD and documentation"
    git push origin main
    ```
 
 2. **Vytvořte Web Service na Render.com**:
-   - Přihlaste se na [dashboard.render.com](https://dashboard.render.com/).
-   - Klikněte na **New +** -> **Web Service**.
-   - Propojte svůj GitHub repozitář s tímto projektem.
-   - Nastavte parametry:
-     - **Name**: `signalr-global-chat` (nebo libovolný název)
-     - **Language / Runtime**: `Docker`
-     - **Region**: `Frankfurt (EU)` (nebo vám nejbližší)
-     - **Instance Type**: `Free`
+   - Přejděte na [dashboard.render.com](https://dashboard.render.com/) -> **New +** -> **Web Service**.
+   - Vyberte váš repozitář.
+   - **Runtime**: `Docker`
+   - **Region**: `Frankfurt (EU Central)` *(stejný jako vaše databáze)*
+   - **Plan**: `Free`
+
+3. **Nastavte proměnnou prostředí (Environment Variables)**:
+   - **Klíč**: `DATABASE_URL`
+   - **Hodnota**: URL vaší Render PostgreSQL databáze, např.:
+     ```text
+     postgresql://postgresrender_stv7_user:JMNbY97TnCvqfvjXCfEVTgWsDSR0aQ4m@dpg-dabtsb3tqb8s73diao30-a.frankfurt-postgres.render.com/postgresrender_stv7
+     ```
+     *(V rámci Renderu lze pro ještě vyšší rychlost použít i Internal Database URL z detailu databáze).*
+
+4. **Spuštění**:
    - Klikněte na **Deploy Web Service**.
-
-3. Render automaticky sestaví Docker image a spustí aplikaci na vygenerované URL (např. `https://signalr-global-chat.onrender.com`).
-
----
-
-### Možnost B: Nasazení přes Render Blueprint (`render.yaml`)
-
-Projekt již obsahuje soubor `render.yaml`. Na Render.com stačí:
-1. Přejít na **New +** -> **Blueprint**.
-2. Zvolit váš GitHub repozitář.
-3. Render automaticky načte konfiguraci z `render.yaml` a spustí nasazení.
+   - Render automaticky sestaví Docker kontejner, spustí `db.Database.EnsureCreated()` a vytvoří tabulky v PostgreSQL.
 
 ---
 
-## 🐳 Lokální spuštění přes Docker
-
-Pokud chcete otestovat Docker kontejner lokálně:
+## 💻 Lokální spuštění
 
 ```bash
-# Sestavení image
-docker build -t signalr-global-chat .
-
-# Spuštění kontejneru na portu 8080
-docker run -d -p 8080:8080 -e PORT=8080 --name chat-app signalr-global-chat
+dotnet run --project WebApplicationASP01.csproj
 ```
 
-Aplikace bude dostupná na `http://localhost:8080`.
-
----
-
-## 🛠️ Použité technologie
-
-- **Backend**: ASP.NET Core 10.0, C#, Microsoft.AspNetCore.SignalR
-- **Frontend**: Razor Pages, Pure Modern CSS (CSS Variables, Flexbox, Grid, Glassmorphism, Animations), Vanilla JavaScript (ES6+), Web Audio API
-- **DevOps**: Docker (Multi-stage build), Render Blueprint YAML
+- **Chat UI**: [http://localhost:5129](http://localhost:5129)
+- **Swagger API**: [http://localhost:5129/swagger](http://localhost:5129/swagger)

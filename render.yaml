@@ -13,3 +13,5 @@ services:
         value: "false"
       - key: DOTNET_USE_POLLING_FILE_WATCHER
         value: "true"
+      - key: DATABASE_URL
+        sync: false
