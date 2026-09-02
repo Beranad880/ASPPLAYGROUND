@@ -1,6 +1,11 @@
 using WebApplicationASP01.Hubs;
 using WebApplicationASP01.Services;
 
+// Disable config file watching to prevent inotify limit crashes in Linux / Render containers
+Environment.SetEnvironmentVariable("DOTNET_hostBuilder:reloadConfigOnChange", "false");
+Environment.SetEnvironmentVariable("ASPNETCORE_hostBuilder:reloadConfigOnChange", "false");
+Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "true");
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Support Render & dynamic container PORT environment variable
@@ -23,7 +28,8 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
-    app.UseHttpsRedirection();
+    // Render proxy handles SSL termination and HTTPS redirection automatically
+    // app.UseHttpsRedirection();
 }
 
 app.UseStaticFiles();

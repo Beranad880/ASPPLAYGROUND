@@ -22,4 +22,9 @@ RUN dotnet publish "WebApplicationASP01.csproj" -c $BUILD_CONFIGURATION -o /app/
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "WebApplicationASP01.dll"]
+
+# Prevent inotify instance limit crashes in Linux containers
+ENV DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE=false
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+
+ENTRYPOINT ["dotnet", "WebApplicationASP01.dll", "--hostBuilder:reloadConfigOnChange=false"]

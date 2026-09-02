@@ -3,10 +3,10 @@
 namespace WebApplicationASP01.App
 {
     [ApiController]
-    [Route("api")]  // Základní routa pro celý kontroler
-    public class MyController : ControllerBase  // Lepší název než jen "Controller"
+    [Route("api")]  
+    public class MyController : ControllerBase  
     {
-        [HttpGet("ahoj")]  // Cesta bude: /api/ahoj
+        [HttpGet("ahoj")]  
         public IActionResult Index()
         {
             return Ok("Hello, World!");
