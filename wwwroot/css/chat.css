@@ -330,6 +330,19 @@ body {
     transform: translateY(1px) scale(0.97);
 }
 
+.btn-danger-action {
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.28);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.btn-danger-action:hover {
+    background: rgba(239, 68, 68, 0.22);
+    border-color: rgba(239, 68, 68, 0.55);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}
+
 /* ==========================================================================
    User Profile Strip
    ========================================================================== */
@@ -943,7 +956,8 @@ body {
         display: none;
     }
 
-    .share-text {
+    .share-text,
+    .clear-text {
         display: none;
     }
 

@@ -46,6 +46,26 @@ public class ChatHub : Hub
         });
     }
 
+    public async Task ClearChat(string user)
+    {
+        if (string.IsNullOrWhiteSpace(user))
+        {
+            user = "Někdo";
+        }
+        else
+        {
+            user = user.Trim();
+            if (user.Length > 30)
+            {
+                user = user.Substring(0, 30);
+            }
+        }
+
+        _historyService.ClearMessages();
+
+        await Clients.All.SendAsync("ChatCleared", user);
+    }
+
     public override async Task OnConnectedAsync()
     {
         Interlocked.Increment(ref _connectedUsersCount);

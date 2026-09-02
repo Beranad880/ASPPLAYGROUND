@@ -20,4 +20,9 @@ public class ChatHistoryService
     {
         return _messages.ToArray();
     }
+
+    public void ClearMessages()
+    {
+        _messages.Clear();
+    }
 }

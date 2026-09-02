@@ -108,6 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const statusText = document.getElementById("statusText");
     const soundToggle = document.getElementById("soundToggle");
     const soundIcon = document.getElementById("soundIcon");
+    const clearChatBtn = document.getElementById("clearChatBtn");
     const shareBtn = document.getElementById("shareBtn");
     const scrollToBottomBtn = document.getElementById("scrollToBottomBtn");
     const toastNotification = document.getElementById("toastNotification");
@@ -144,6 +145,22 @@ document.addEventListener("DOMContentLoaded", () => {
             const isMuted = sound.toggleMute();
             updateSoundIcon();
             showToast(isMuted ? "Zvuk vypnut 🔇" : "Zvuk zapnut 🔊");
+        });
+    }
+
+    // Clear chat button
+    if (clearChatBtn) {
+        clearChatBtn.addEventListener("click", async () => {
+            if (!confirm("Opravdu chcete smazat celou historii chatu pro všechny uživatele?")) {
+                return;
+            }
+            try {
+                const user = nicknameInput.value.trim() || currentUsername;
+                await connection.invoke("ClearChat", user);
+            } catch (err) {
+                console.error("Chyba při mazání chatu:", err);
+                showToast("Historii se nepodařilo smazat. ❌");
+            }
         });
     }
 
@@ -252,13 +269,37 @@ document.addEventListener("DOMContentLoaded", () => {
     connection.on("LoadHistory", (messages) => {
         if (messages && messages.length > 0) {
             if (emptyChat) emptyChat.style.display = "none";
-            messagesContainer.innerHTML = "";
+            const messageElements = messagesContainer.querySelectorAll(".message-item");
+            messageElements.forEach(el => el.remove());
             messages.forEach(msg => {
                 appendMessage(msg, false);
             });
             scrollToBottom(false);
+        } else {
+            clearMessagesUI();
         }
     });
+
+    // Chat cleared handler
+    connection.on("ChatCleared", (clearedByUser) => {
+        clearMessagesUI();
+        showToast(`${clearedByUser} smazal(a) historii chatu 🗑️`);
+    });
+
+    function clearMessagesUI() {
+        const messageElements = messagesContainer.querySelectorAll(".message-item");
+        messageElements.forEach(el => el.remove());
+
+        if (emptyChat) {
+            if (!messagesContainer.contains(emptyChat)) {
+                messagesContainer.appendChild(emptyChat);
+            }
+            emptyChat.style.display = "flex";
+        }
+        if (scrollToBottomBtn) {
+            scrollToBottomBtn.classList.remove("visible");
+        }
+    }
 
     function appendMessage(data, shouldScroll = true) {
         if (emptyChat) {
