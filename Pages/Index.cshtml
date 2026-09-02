@@ -4,72 +4,146 @@
     ViewData["Title"] = "Globální Chat";
 }
 
-<main class="chat-wrapper">
+<!-- Ambient Lighting Elements -->
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+<div class="bg-orb orb-3"></div>
+
+<main class="chat-app">
     <!-- Header -->
     <header class="chat-header">
-        <div class="chat-header-title">
-            <div class="chat-logo">💬</div>
-            <div class="chat-title-text">
-                <h1>SignalR Global Chat</h1>
-                <p>Real-time chat napříč všemi zařízeními</p>
+        <div class="header-brand">
+            <div class="brand-logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-glow"></span>
+            </div>
+            <div class="brand-info">
+                <div class="brand-title-row">
+                    <h1>SignalR Chat</h1>
+                    <span class="protocol-badge">v1.0 Live</span>
+                </div>
+                <p class="brand-subtitle">Reálný čas napříč všemi prohlížeči a zařízeními</p>
             </div>
         </div>
-        <div class="chat-header-stats">
-            <div class="badge">
-                <span>👥</span>
-                <span>Online:</span>
-                <strong id="onlineCount">1</strong>
+
+        <div class="header-actions">
+            <div class="badge badge-online">
+                <span class="beacon-pulse"></span>
+                <span class="beacon-dot"></span>
+                <span class="badge-text"><strong id="onlineCount">1</strong> online</span>
             </div>
-            <div class="badge">
+
+            <div class="badge badge-status" id="statusBadge" title="Stav WebSocket spojení">
                 <span id="statusDot" class="status-dot"></span>
                 <span id="statusText">Připojování...</span>
             </div>
+
+            <button type="button" id="soundToggle" class="btn-icon" title="Zapnout/Vypnout zvukové upozornění" aria-label="Zvuk">
+                <span id="soundIcon">🔊</span>
+            </button>
+
+            <button type="button" id="shareBtn" class="btn-action" title="Zkopírovat odkaz do schránky">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                <span class="share-text">Sdílet</span>
+            </button>
         </div>
     </header>
 
-    <!-- Nickname Bar -->
-    <section class="chat-nickname-bar">
-        <div class="nickname-input-group">
-            <div id="userAvatar" class="user-avatar-badge">?</div>
-            <label for="userInput" class="nickname-label">Přezdívka:</label>
-            <input type="text" id="userInput" class="nickname-input" placeholder="Zadejte své jméno..." maxlength="30" autocomplete="off" />
+    <!-- Nickname & Profile Strip -->
+    <section class="user-strip">
+        <div class="user-profile">
+            <div id="userAvatar" class="avatar-ring">
+                <span id="avatarText">?</span>
+            </div>
+            <div class="nickname-control">
+                <span class="nickname-caption">Tvoje přezdívka</span>
+                <div class="nickname-input-box">
+                    <input type="text" id="userInput" class="nickname-input" placeholder="Zadej jméno..." maxlength="25" autocomplete="off" />
+                    <button type="button" id="randomNameBtn" class="btn-dice" title="Vygenerovat náhodnou přezdívku" aria-label="Náhodné jméno">🎲</button>
+                </div>
+            </div>
         </div>
-        <div class="device-hint">
-            <span>🌐 Otevřete tuto adresu na telefonu, tabletu nebo jiném PC</span>
+
+        <div class="strip-hint">
+            <span class="hint-pill">✨ Otevřete v dalším okně nebo na mobilu a pište si živě</span>
         </div>
     </section>
 
-    <!-- Messages List -->
-    <section id="messagesList" class="chat-messages" aria-live="polite">
-        <div id="emptyChat" class="empty-chat">
-            <div class="empty-icon">💭</div>
-            <h3>Zatím zde nejsou žádné zprávy</h3>
-            <p>Napište něco a vyzkoušejte propojení v reálném čase!</p>
+    <!-- Room Separator -->
+    <div class="room-divider">
+        <span>💬 Globální místnost • Historie uložena</span>
+    </div>
+
+    <!-- Messages Feed -->
+    <section id="messagesList" class="messages-container" aria-live="polite">
+        <div id="emptyChat" class="empty-state">
+            <div class="empty-art">
+                <div class="empty-emoji">🚀</div>
+                <div class="empty-halo"></div>
+            </div>
+            <h3>Místnost je připravena!</h3>
+            <p>Zatím nikdo nic nenapsal. Buďte první, kdo pozdraví ostatní připojená zařízení.</p>
+            <div class="quick-suggestions">
+                <button type="button" class="suggestion-chip" data-msg="Ahoj všem! 👋">„Ahoj všem! 👋”</button>
+                <button type="button" class="suggestion-chip" data-msg="Funguje to skvěle! 🚀">„Funguje to skvěle! 🚀”</button>
+                <button type="button" class="suggestion-chip" data-msg="Zkouším chat z mobilu 📱">„Zkouším chat z mobilu 📱”</button>
+            </div>
         </div>
     </section>
 
-    <!-- Footer / Input Form -->
+    <!-- Scroll To Bottom Button -->
+    <button type="button" id="scrollToBottomBtn" class="scroll-fab" title="Přejít na nejnovější zprávy" aria-label="Dolů">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+    </button>
+
+    <!-- Footer Controls & Input -->
     <footer class="chat-footer">
-        <div class="quick-emojis">
-            <button type="button" class="quick-emoji-btn">👋</button>
-            <button type="button" class="quick-emoji-btn">👍</button>
-            <button type="button" class="quick-emoji-btn">🔥</button>
-            <button type="button" class="quick-emoji-btn">❤️</button>
-            <button type="button" class="quick-emoji-btn">😂</button>
-            <button type="button" class="quick-emoji-btn">🚀</button>
-            <button type="button" class="quick-emoji-btn">🎉</button>
-            <button type="button" class="quick-emoji-btn">✨</button>
+        <!-- Quick Reaction Emojis -->
+        <div class="reaction-bar">
+            <button type="button" class="reaction-btn" data-emoji="👋">👋</button>
+            <button type="button" class="reaction-btn" data-emoji="👍">👍</button>
+            <button type="button" class="reaction-btn" data-emoji="🔥">🔥</button>
+            <button type="button" class="reaction-btn" data-emoji="❤️">❤️</button>
+            <button type="button" class="reaction-btn" data-emoji="😂">😂</button>
+            <button type="button" class="reaction-btn" data-emoji="🎉">🎉</button>
+            <button type="button" class="reaction-btn" data-emoji="🚀">🚀</button>
+            <button type="button" class="reaction-btn" data-emoji="✨">✨</button>
+            <button type="button" class="reaction-btn" data-emoji="💯">💯</button>
+            <button type="button" class="reaction-btn" data-emoji="👀">👀</button>
         </div>
 
-        <form id="chatForm" class="chat-input-form">
-            <input type="text" id="messageInput" class="chat-input" placeholder="Napište zprávu... (Enter pro odeslání)" autocomplete="off" maxlength="1000" />
-            <button type="submit" id="sendButton" class="send-btn" disabled>
-                <span>Odeslat</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
+        <!-- Input Box -->
+        <form id="chatForm" class="message-composer">
+            <div class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    class="composer-input" 
+                    placeholder="Napište zprávu pro všechny..." 
+                    autocomplete="off" 
+                    maxlength="1000" 
+                    required />
+                <span class="shortcut-hint">↵ Enter</span>
+            </div>
+            <button type="submit" id="sendButton" class="send-action-btn" disabled aria-label="Odeslat zprávu">
+                <span class="send-btn-label">Odeslat</span>
+                <span class="send-btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </span>
             </button>
         </form>
     </footer>
 </main>
+
+<!-- Toast Notification Container -->
+<div id="toastNotification" class="toast-popup">
+    <span id="toastMessage">Odkaz byl zkopírován!</span>
+</div>
