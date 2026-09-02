@@ -1,0 +1,75 @@
+@page
+@model WebApplicationASP01.Pages.IndexModel
+@{
+    ViewData["Title"] = "Globální Chat";
+}
+
+<main class="chat-wrapper">
+    <!-- Header -->
+    <header class="chat-header">
+        <div class="chat-header-title">
+            <div class="chat-logo">💬</div>
+            <div class="chat-title-text">
+                <h1>SignalR Global Chat</h1>
+                <p>Real-time chat napříč všemi zařízeními</p>
+            </div>
+        </div>
+        <div class="chat-header-stats">
+            <div class="badge">
+                <span>👥</span>
+                <span>Online:</span>
+                <strong id="onlineCount">1</strong>
+            </div>
+            <div class="badge">
+                <span id="statusDot" class="status-dot"></span>
+                <span id="statusText">Připojování...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Nickname Bar -->
+    <section class="chat-nickname-bar">
+        <div class="nickname-input-group">
+            <div id="userAvatar" class="user-avatar-badge">?</div>
+            <label for="userInput" class="nickname-label">Přezdívka:</label>
+            <input type="text" id="userInput" class="nickname-input" placeholder="Zadejte své jméno..." maxlength="30" autocomplete="off" />
+        </div>
+        <div class="device-hint">
+            <span>🌐 Otevřete tuto adresu na telefonu, tabletu nebo jiném PC</span>
+        </div>
+    </section>
+
+    <!-- Messages List -->
+    <section id="messagesList" class="chat-messages" aria-live="polite">
+        <div id="emptyChat" class="empty-chat">
+            <div class="empty-icon">💭</div>
+            <h3>Zatím zde nejsou žádné zprávy</h3>
+            <p>Napište něco a vyzkoušejte propojení v reálném čase!</p>
+        </div>
+    </section>
+
+    <!-- Footer / Input Form -->
+    <footer class="chat-footer">
+        <div class="quick-emojis">
+            <button type="button" class="quick-emoji-btn">👋</button>
+            <button type="button" class="quick-emoji-btn">👍</button>
+            <button type="button" class="quick-emoji-btn">🔥</button>
+            <button type="button" class="quick-emoji-btn">❤️</button>
+            <button type="button" class="quick-emoji-btn">😂</button>
+            <button type="button" class="quick-emoji-btn">🚀</button>
+            <button type="button" class="quick-emoji-btn">🎉</button>
+            <button type="button" class="quick-emoji-btn">✨</button>
+        </div>
+
+        <form id="chatForm" class="chat-input-form">
+            <input type="text" id="messageInput" class="chat-input" placeholder="Napište zprávu... (Enter pro odeslání)" autocomplete="off" maxlength="1000" />
+            <button type="submit" id="sendButton" class="send-btn" disabled>
+                <span>Odeslat</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </form>
+    </footer>
+</main>
