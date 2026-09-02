@@ -3,6 +3,13 @@ using WebApplicationASP01.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Support Render & dynamic container PORT environment variable
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddRazorPages();
@@ -16,9 +23,9 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
