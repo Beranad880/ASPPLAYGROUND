@@ -60,4 +60,16 @@ public class AppEnvironmentInfo
 
     [JsonPropertyName("serverTimeUtc")]
     public DateTimeOffset ServerTimeUtc { get; set; } = DateTimeOffset.UtcNow;
+
+    [JsonPropertyName("memoryUsageMb")]
+    public string MemoryUsageMb { get; set; } = string.Empty;
+
+    [JsonPropertyName("cpuTime")]
+    public string CpuTime { get; set; } = string.Empty;
+
+    [JsonPropertyName("uptime")]
+    public string Uptime { get; set; } = string.Empty;
+
+    [JsonPropertyName("rateLimitingEnabled")]
+    public bool RateLimitingEnabled { get; set; } = true;
 }

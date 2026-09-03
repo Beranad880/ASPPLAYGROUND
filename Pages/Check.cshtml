@@ -1,4 +1,4 @@
-@page "/check"
+@page "/checks"
 @model WebApplicationASP01.Pages.CheckModel
 @{
     Layout = "_Layout";
@@ -161,6 +161,22 @@
                 <div class="meta-spec-item">
                     <span class="meta-k">ČAS KONTROLY (UTC):</span>
                     <span class="meta-v" id="serverUtcTime">@Model.CheckResult.Timestamp.ToString("yyyy-MM-dd HH:mm:ss 'UTC'")</span>
+                </div>
+                <div class="meta-spec-item">
+                    <span class="meta-k">PAMĚŤ (RAM):</span>
+                    <span class="meta-v" id="memoryUsage">@Model.CheckResult.Environment.MemoryUsageMb</span>
+                </div>
+                <div class="meta-spec-item">
+                    <span class="meta-k">ČAS CPU:</span>
+                    <span class="meta-v" id="cpuTime">@Model.CheckResult.Environment.CpuTime</span>
+                </div>
+                <div class="meta-spec-item">
+                    <span class="meta-k">DOBA BĚHU (UPTIME):</span>
+                    <span class="meta-v" id="uptime">@Model.CheckResult.Environment.Uptime</span>
+                </div>
+                <div class="meta-spec-item">
+                    <span class="meta-k">RATE LIMITING:</span>
+                    <span class="meta-v" style="color: #30D158;">@(Model.CheckResult.Environment.RateLimitingEnabled ? "AKTIVNÍ (15 req/s)" : "NEAKTIVNÍ")</span>
                 </div>
             </div>
         </div>

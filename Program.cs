@@ -6,6 +6,9 @@ using WebApplicationASP01.Extensions;
 using WebApplicationASP01.Hubs;
 using WebApplicationASP01.Services;
 
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
+
 // 1. Load .env file for local development (silently skipped on Railway if missing)
 DotNetEnv.Env.Load();
 
@@ -25,6 +28,22 @@ if (!string.IsNullOrEmpty(webPort))
 
 // Global Exception Handling (Problem Details)
 builder.Services.AddProblemDetails();
+
+// Rate Limiting (Ochrana proti spamu)
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? httpContext.Request.Headers["X-Forwarded-For"].ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 15, // 15 requests per second per IP
+                QueueLimit = 2,
+                Window = TimeSpan.FromSeconds(1)
+            }));
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 // Add services to the container
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -96,11 +115,16 @@ else
 
 app.UseStaticFiles();
 app.UseRouting();
+
+// Ochrana proti spamu
+app.UseRateLimiter();
+
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapRazorPages();
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<LinkHub>("/linkHub");
+app.MapHub<WebApplicationASP01.Hubs.PersonHub>("/personHub");
 
 await app.RunAsync();

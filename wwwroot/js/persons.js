@@ -603,4 +603,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initial load
     fetchPersons();
+
+    // --- SignalR Real-Time Connection ---
+    if (typeof signalR !== 'undefined') {
+        const personConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/personHub")
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Warning)
+            .build();
+
+        personConnection.on("PersonsUpdated", () => {
+            fetchPersons();
+            showToast("[ DATA BYLA ŽIVĚ AKTUALIZOVÁNA ⚡ ]");
+        });
+
+        personConnection.start()
+            .then(() => console.log("SignalR: Připojeno k PersonHub pro real-time aktualizace osob."))
+            .catch(err => console.error("SignalR: Chyba připojení k PersonHub:", err));
+    } else {
+        console.warn("SignalR není dostupný.");
+    }
 });

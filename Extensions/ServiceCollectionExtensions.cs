@@ -34,7 +34,14 @@ public static class ServiceCollectionExtensions
             connectionString = ParsePostgresConnectionString(rawUrl);
         }
 
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddDbContext<AppDbContext>(options => 
+            options.UseNpgsql(connectionString, sqlOptions => 
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(2),
+                    errorCodesToAdd: null);
+            }));
         return services;
     }
 

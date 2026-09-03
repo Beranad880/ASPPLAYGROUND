@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 
+using Microsoft.AspNetCore.SignalR;
+using WebApplicationASP01.Hubs;
+
 namespace WebApplicationASP01.App;
 
 [ApiController]
@@ -8,10 +11,12 @@ namespace WebApplicationASP01.App;
 public class PersonsController : ControllerBase
 {
     private readonly PersonService _personService;
+    private readonly IHubContext<PersonHub> _hubContext;
 
-    public PersonsController(PersonService personService)
+    public PersonsController(PersonService personService, IHubContext<PersonHub> hubContext)
     {
         _personService = personService;
+        _hubContext = hubContext;
     }
 
     [HttpGet("ahoj")]
@@ -48,6 +53,7 @@ public class PersonsController : ControllerBase
         }
 
         var created = await _personService.CreateAsync(dto);
+        await _hubContext.Clients.All.SendAsync("PersonsUpdated");
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
@@ -65,6 +71,7 @@ public class PersonsController : ControllerBase
             return NotFound(new { message = $"Osoba s ID '{id}' nebyla nalezena." });
         }
 
+        await _hubContext.Clients.All.SendAsync("PersonsUpdated");
         return Ok(updated);
     }
 
@@ -77,6 +84,7 @@ public class PersonsController : ControllerBase
             return NotFound(new { message = $"Osoba s ID '{id}' nebyla nalezena." });
         }
 
+        await _hubContext.Clients.All.SendAsync("PersonsUpdated");
         return NoContent();
     }
 }

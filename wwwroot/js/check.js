@@ -100,6 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
             serverUtcTime.textContent = new Date(data.timestamp).toUTCString();
         }
 
+        const memEl = document.getElementById('memoryUsage');
+        const cpuEl = document.getElementById('cpuTime');
+        const upEl = document.getElementById('uptime');
+        if (memEl && data.environment.memoryUsageMb) memEl.textContent = data.environment.memoryUsageMb;
+        if (cpuEl && data.environment.cpuTime) cpuEl.textContent = data.environment.cpuTime;
+        if (upEl && data.environment.uptime) upEl.textContent = data.environment.uptime;
+
         // PostgreSQL
         if (pgCard) {
             pgCard.className = `service-diagnostic-card ${isPgOk ? 'service-online' : 'service-offline'}`;

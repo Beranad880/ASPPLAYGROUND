@@ -65,7 +65,11 @@ public class SystemCheckService
                 Framework = ".NET 10.0 (C# 13)",
                 EnvironmentName = _env.EnvironmentName,
                 OsPlatform = System.Environment.OSVersion.ToString(),
-                ServerTimeUtc = DateTimeOffset.UtcNow
+                ServerTimeUtc = DateTimeOffset.UtcNow,
+                MemoryUsageMb = (Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0).ToString("0.00") + " MB",
+                CpuTime = Process.GetCurrentProcess().TotalProcessorTime.ToString(@"hh\:mm\:ss"),
+                Uptime = (DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss"),
+                RateLimitingEnabled = true
             }
         };
     }
