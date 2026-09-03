@@ -257,6 +257,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Enforce nickname from server
+    connection.on("EnforceNickname", (enforcedName) => {
+        currentUsername = enforcedName;
+        if (nicknameInput) {
+            nicknameInput.value = enforcedName;
+            nicknameInput.disabled = true;
+            nicknameInput.classList.add("disabled-brutalist");
+            nicknameInput.style.opacity = "0.6";
+            nicknameInput.style.cursor = "not-allowed";
+        }
+        localStorage.setItem("chat_username", enforcedName);
+        updateUserAvatarUI(enforcedName);
+        
+        if (randomNameBtn) {
+            randomNameBtn.disabled = true;
+            randomNameBtn.style.display = "none";
+        }
+        showToast(`[ PŘEZDÍVKA UZAMČENA: ${enforcedName} ]`);
+    });
+
     // Update user count
     connection.on("UpdateUserCount", (count) => {
         if (onlineCountBadge) {

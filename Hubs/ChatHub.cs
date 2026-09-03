@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Concurrent;
 using WebApplicationASP01.Models;
 using WebApplicationASP01.Services;
 
@@ -8,6 +9,7 @@ public class ChatHub : Hub
 {
     private readonly ChatHistoryService _historyService;
     private static int _connectedUsersCount = 0;
+    private static readonly ConcurrentDictionary<string, string> _ipToNickname = new();
 
     public ChatHub(ChatHistoryService historyService)
     {
@@ -35,6 +37,18 @@ public class ChatHub : Hub
         }
 
         var clientIp = GetClientIpAddress();
+        
+        // Enforce one nickname per IP
+        if (_ipToNickname.TryGetValue(clientIp, out var existingName))
+        {
+            user = existingName;
+        }
+        else
+        {
+            _ipToNickname.TryAdd(clientIp, user);
+            await Clients.Caller.SendAsync("EnforceNickname", user);
+        }
+
         var chatMessage = new ChatMessage(user, message, DateTime.Now, false, clientIp);
         await _historyService.AddMessageAsync(chatMessage);
 
@@ -76,6 +90,11 @@ public class ChatHub : Hub
 
         var clientIp = GetClientIpAddress();
         await Clients.Caller.SendAsync("SetUserIp", clientIp);
+
+        if (_ipToNickname.TryGetValue(clientIp, out var lockedName))
+        {
+            await Clients.Caller.SendAsync("EnforceNickname", lockedName);
+        }
 
         var recentMessages = await _historyService.GetRecentMessagesAsync();
         var history = recentMessages.Select(m => new
