@@ -3,22 +3,79 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#090d16" />
-    <meta name="description" content="Moderní real-time globální chat postavený na ASP.NET Core SignalR a Razor Pages." />
-    <title>@ViewData["Title"] - SignalR Global Chat</title>
+    <meta name="theme-color" content="#FFE600" />
+    <meta name="description" content="ASPNET PLAYGROUND - Brutalistická webová platforma kombinující SignalR Real-Time Chat a Person CRUD REST API." />
+    <title>@ViewData["Title"] // ASPNET PLAYGROUND</title>
     
-    <!-- Google Fonts: Plus Jakarta Sans -->
+    <!-- Google Fonts: Space Grotesk & Space Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" />
 </head>
-<body>
-    @RenderBody()
+<body class="brutalist-body">
+    <!-- Top Marquee Ticker -->
+    <div class="brutalist-ticker">
+        <div class="ticker-content">
+            <span>⚡ ASPNET PLAYGROUND</span>
+            <span class="ticker-sep">///</span>
+            <span>.NET 10.0 CORE</span>
+            <span class="ticker-sep">///</span>
+            <span>SIGNALR WEBSOCKETS</span>
+            <span class="ticker-sep">///</span>
+            <span>POSTGRESQL & EF CORE</span>
+            <span class="ticker-sep">///</span>
+            <span>RAILWAY & DOCKER READY</span>
+            <span class="ticker-sep">///</span>
+            <span>⚡ ASPNET PLAYGROUND</span>
+            <span class="ticker-sep">///</span>
+            <span>.NET 10.0 CORE</span>
+            <span class="ticker-sep">///</span>
+            <span>SIGNALR WEBSOCKETS</span>
+            <span class="ticker-sep">///</span>
+            <span>POSTGRESQL & EF CORE</span>
+        </div>
+    </div>
 
-    <script src="~/js/signalr.min.js" asp-append-version="true"></script>
-    <script src="~/js/chat.js" asp-append-version="true"></script>
+    <!-- Brutalist Navigation Bar -->
+    <header class="global-navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">
+                <span class="brand-badge">⚡ ASPNET</span>
+                <span class="brand-text">PLAYGROUND</span>
+            </a>
+
+            <nav class="navbar-nav">
+                <a href="/" class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-label">PŘEHLED</span>
+                </a>
+                <a href="/chat" class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Chat" ? "active" : "")">
+                    <span class="nav-icon">💬</span>
+                    <span class="nav-label">CHAT</span>
+                </a>
+                <a href="/persons" class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Persons" ? "active" : "")">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">CRUD</span>
+                </a>
+                <a href="/swagger" target="_blank" class="nav-link nav-link-external">
+                    <span class="nav-icon">📜</span>
+                    <span class="nav-label">SWAGGER [↗]</span>
+                </a>
+            </nav>
+
+            <div class="navbar-status">
+                <span class="status-indicator-dot"></span>
+                <span class="status-indicator-text">[ .NET 10 LIVE ]</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-layout-wrapper">
+        @RenderBody()
+    </div>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

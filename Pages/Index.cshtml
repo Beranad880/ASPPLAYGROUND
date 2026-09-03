@@ -2,164 +2,140 @@
 @model WebApplicationASP01.Pages.IndexModel
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Globální Chat";
+    ViewData["Title"] = "PŘEHLED";
 }
 
-<!-- Ambient Lighting Elements -->
-<div class="bg-orb orb-1"></div>
-<div class="bg-orb orb-2"></div>
-<div class="bg-orb orb-3"></div>
-
-<main class="chat-app">
-    <!-- Header -->
-    <header class="chat-header">
-        <div class="header-brand">
-            <div class="brand-logo">
-                <span class="logo-icon">⚡</span>
-                <span class="logo-glow"></span>
-            </div>
-            <div class="brand-info">
-                <div class="brand-title-row">
-                    <h1>SignalR Chat</h1>
-                    <span class="protocol-badge">v1.0 Live</span>
-                </div>
-                <p class="brand-subtitle">Reálný čas napříč všemi prohlížeči a zařízeními</p>
-            </div>
+<div class="playground-home">
+    <!-- Brutalist Hero Section -->
+    <section class="playground-hero">
+        <div class="hero-stamp-wrapper">
+            <span class="brutalist-stamp stamp-yellow">★ VERSION 10.0</span>
+            <span class="brutalist-stamp stamp-black">HIGH VOLTAGE</span>
+            <span class="brutalist-stamp stamp-yellow">PRODUCTION READY</span>
         </div>
-
-        <div class="header-actions">
-            <div class="badge badge-online">
-                <span class="beacon-pulse"></span>
-                <span class="beacon-dot"></span>
-                <span class="badge-text"><strong id="onlineCount">1</strong> online</span>
-            </div>
-
-            <div class="badge badge-status" id="statusBadge" title="Stav WebSocket spojení">
-                <span id="statusDot" class="status-dot"></span>
-                <span id="statusText">Připojování...</span>
-            </div>
-
-            <button type="button" id="soundToggle" class="btn-icon" title="Zapnout/Vypnout zvukové upozornění" aria-label="Zvuk">
-                <span id="soundIcon">🔊</span>
-            </button>
-
-            <button type="button" id="clearChatBtn" class="btn-action btn-danger-action" title="Smazat historii zpráv pro všechny" aria-label="Smazat chat">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-                <span class="clear-text">Smazat</span>
-            </button>
-
-            <button type="button" id="shareBtn" class="btn-action" title="Zkopírovat odkaz do schránky">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                </svg>
-                <span class="share-text">Sdílet</span>
-            </button>
-        </div>
-    </header>
-
-    <!-- Nickname & Profile Strip -->
-    <section class="user-strip">
-        <div class="user-profile">
-            <div id="userAvatar" class="avatar-ring">
-                <span id="avatarText">?</span>
-            </div>
-            <div class="nickname-control">
-                <span class="nickname-caption">Tvoje přezdívka</span>
-                <div class="nickname-input-box">
-                    <input type="text" id="userInput" class="nickname-input" placeholder="Zadej jméno..." maxlength="25" autocomplete="off" />
-                    <button type="button" id="randomNameBtn" class="btn-dice" title="Vygenerovat náhodnou přezdívku" aria-label="Náhodné jméno">🎲</button>
-                </div>
-            </div>
-            <div class="user-ip-tag" id="userIpTag" title="IP adresa vašeho zařízení">
-                <span class="ip-icon">🌐</span>
-                <span class="ip-label">IP:</span>
-                <span id="userIpText" class="ip-value">@Model.ClientIp</span>
-            </div>
-        </div>
-
-        <div class="strip-hint">
-            <span class="hint-pill">✨ Otevřete v dalším okně nebo na mobilu a pište si živě</span>
-        </div>
+        <h1 class="hero-title">
+            ASPNET<br /><span class="hero-title-highlight">PLAYGROUND</span>
+        </h1>
+        <p class="hero-subtitle">
+            Dva nezávislé fullstack moduly v jedné aplikaci. Žádné zbytečné kudrlinky. Čistý výkon .NET 10, SignalR WebSockets a PostgreSQL.
+        </p>
     </section>
 
-    <!-- Room Separator -->
-    <div class="room-divider">
-        <span>💬 Globální místnost • Historie uložena</span>
-    </div>
+    <!-- Split Hub Grid -->
+    <section class="split-hub-grid">
+        <!-- Card 1: Real-Time SignalR Chat -->
+        <article class="hub-card hub-card-chat">
+            <div class="card-header-bar">
+                <span class="card-tag">MODULE_01 // REALTIME</span>
+                <span class="card-status-badge">● LIVE_FEED</span>
+            </div>
 
-    <!-- Messages Feed -->
-    <section id="messagesList" class="messages-container" aria-live="polite">
-        <div id="emptyChat" class="empty-state">
-            <div class="empty-art">
-                <div class="empty-emoji">🚀</div>
-                <div class="empty-halo"></div>
+            <div class="card-content">
+                <div class="card-title-row">
+                    <span class="card-emoji-box">⚡</span>
+                    <h2>SIGNALR CHAT</h2>
+                </div>
+                <p class="card-desc">
+                    Globální real-time chat napříč klienty přes WebSockets bez reloadu. Okamžitá latence pod 1ms, in-memory historie a audio syntezátor.
+                </p>
+
+                <div class="brutalist-feature-box">
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>WebSockets Core:</strong> Obousměrný duplexní stream</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>Live Presence:</strong> Přesné počítadlo online připojených</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>Web Audio FX:</strong> Syntetizované zvuky zpráv</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>Auto Reconnect:</strong> Automatické obnovení spojení</span>
+                    </div>
+                </div>
             </div>
-            <h3>Místnost je připravena!</h3>
-            <p>Zatím nikdo nic nenapsal. Buďte první, kdo pozdraví ostatní připojená zařízení.</p>
-            <div class="quick-suggestions">
-                <button type="button" class="suggestion-chip" data-msg="Ahoj všem! 👋">„Ahoj všem! 👋”</button>
-                <button type="button" class="suggestion-chip" data-msg="Funguje to skvěle! 🚀">„Funguje to skvěle! 🚀”</button>
-                <button type="button" class="suggestion-chip" data-msg="Zkouším chat z mobilu 📱">„Zkouším chat z mobilu 📱”</button>
+
+            <div class="card-bottom">
+                <a href="/chat" class="btn-brutalist btn-brutalist-yellow">
+                    <span>VSTOUPIT DO CHATU</span>
+                    <span class="btn-arrow">[➔]</span>
+                </a>
             </div>
-        </div>
+        </article>
+
+        <!-- Card 2: Person CRUD & REST API -->
+        <article class="hub-card hub-card-crud">
+            <div class="card-header-bar">
+                <span class="card-tag">MODULE_02 // DATABASE</span>
+                <span class="card-status-badge">● POSTGRES_OK</span>
+            </div>
+
+            <div class="card-content">
+                <div class="card-title-row">
+                    <span class="card-emoji-box">👥</span>
+                    <h2>PERSON CRUD</h2>
+                </div>
+                <p class="card-desc">
+                    Plnohodnotný asynchronní CRUD pro správu osob. Napojeno na PostgreSQL přes Entity Framework Core s interaktivním UI a Swaggerem.
+                </p>
+
+                <div class="brutalist-feature-box">
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>PostgreSQL & EF Core:</strong> Asynchronní dotazy</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>REST API:</strong> Endpointy <code>/api/persons</code></span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>Generátor dat:</strong> 1-klik tvorba náhodných osob</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>Živé hledání:</strong> Okamžitá klientská filtrace</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-bottom card-bottom-split">
+                <a href="/persons" class="btn-brutalist btn-brutalist-yellow">
+                    <span>OTEVŘÍT CRUD</span>
+                    <span class="btn-arrow">[➔]</span>
+                </a>
+                <a href="/swagger" target="_blank" class="btn-brutalist" title="Swagger OpenAPI">
+                    <span>SWAGGER [↗]</span>
+                </a>
+            </div>
+        </article>
     </section>
 
-    <!-- Scroll To Bottom Button -->
-    <button type="button" id="scrollToBottomBtn" class="scroll-fab" title="Přejít na nejnovější zprávy" aria-label="Dolů">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-    </button>
-
-    <!-- Footer Controls & Input -->
-    <footer class="chat-footer">
-        <!-- Quick Reaction Emojis -->
-        <div class="reaction-bar">
-            <button type="button" class="reaction-btn" data-emoji="👋">👋</button>
-            <button type="button" class="reaction-btn" data-emoji="👍">👍</button>
-            <button type="button" class="reaction-btn" data-emoji="🔥">🔥</button>
-            <button type="button" class="reaction-btn" data-emoji="❤️">❤️</button>
-            <button type="button" class="reaction-btn" data-emoji="😂">😂</button>
-            <button type="button" class="reaction-btn" data-emoji="🎉">🎉</button>
-            <button type="button" class="reaction-btn" data-emoji="🚀">🚀</button>
-            <button type="button" class="reaction-btn" data-emoji="✨">✨</button>
-            <button type="button" class="reaction-btn" data-emoji="💯">💯</button>
-            <button type="button" class="reaction-btn" data-emoji="👀">👀</button>
+    <!-- Brutalist Tech Strip -->
+    <section class="brutalist-specs-grid">
+        <div class="spec-cell">
+            <span class="spec-key">RUNTIME</span>
+            <span class="spec-val">.NET 10.0</span>
         </div>
-
-        <!-- Input Box -->
-        <form id="chatForm" class="message-composer">
-            <div class="input-wrapper">
-                <input 
-                    type="text" 
-                    id="messageInput" 
-                    class="composer-input" 
-                    placeholder="Napište zprávu pro všechny..." 
-                    autocomplete="off" 
-                    maxlength="1000" 
-                    required />
-                <span class="shortcut-hint">↵ Enter</span>
-            </div>
-            <button type="submit" id="sendButton" class="send-action-btn" disabled aria-label="Odeslat zprávu">
-                <span class="send-btn-label">Odeslat</span>
-                <span class="send-btn-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                    </svg>
-                </span>
-            </button>
-        </form>
-    </footer>
-</main>
-
-<!-- Toast Notification Container -->
-<div id="toastNotification" class="toast-popup">
-    <span id="toastMessage">Odkaz byl zkopírován!</span>
+        <div class="spec-cell">
+            <span class="spec-key">LANGUAGE</span>
+            <span class="spec-val">C# 13.0</span>
+        </div>
+        <div class="spec-cell">
+            <span class="spec-key">REALTIME</span>
+            <span class="spec-val">SIGNALR</span>
+        </div>
+        <div class="spec-cell">
+            <span class="spec-key">DATABASE</span>
+            <span class="spec-val">POSTGRESQL</span>
+        </div>
+        <div class="spec-cell">
+            <span class="spec-key">HOSTING</span>
+            <span class="spec-val">RAILWAY / DOCKER</span>
+        </div>
+    </section>
 </div>

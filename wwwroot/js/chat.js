@@ -1,23 +1,13 @@
-// SignalR Global Chat Client
-
-// Generate deterministic vibrant HSL color from string
-function stringToColor(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const hue = Math.abs(hash % 360);
-    return `hsl(${hue}, 70%, 50%)`;
-}
+// SignalR Global Chat Client - Brutalist Edition
 
 // Generate cool random nicknames
 function generateRandomName() {
-    const adjectives = ["Cyber", "Neon", "Cosmic", "Pixel", "Solar", "Shadow", "Turbo", "Quantum", "Apex", "Hyper", "Vortex", "Frost"];
-    const nouns = ["Ninja", "Rider", "Voyager", "Pilot", "Falcon", "Ghost", "Runner", "Spark", "Hunter", "Wizard", "Knight", "Echo"];
+    const adjectives = ["CYBER", "NEON", "SOLAR", "SHADOW", "TURBO", "QUANTUM", "APEX", "HYPER", "VORTEX", "FROST", "MATRIX", "VECTOR"];
+    const nouns = ["NINJA", "RIDER", "VOYAGER", "PILOT", "FALCON", "GHOST", "RUNNER", "SPARK", "HUNTER", "WIZARD", "KNIGHT", "ECHO"];
     const num = Math.floor(100 + Math.random() * 900);
     const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
-    return `${adj}${noun}_${num}`;
+    return `${adj}_${noun}_${num}`;
 }
 
 // Audio notification manager
@@ -52,20 +42,20 @@ class SoundManager {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
 
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(587.33, now); // D5
-            osc.frequency.exponentialRampToValueAtTime(880, now + 0.1); // A5
+            osc.type = "square";
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.setValueAtTime(880, now + 0.05);
 
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+            gain.gain.setValueAtTime(0.06, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
             osc.connect(gain);
             gain.connect(this.ctx.destination);
 
             osc.start(now);
-            osc.stop(now + 0.22);
+            osc.stop(now + 0.15);
         } catch (e) {
-            // Audio context policy
+            // Audio policy
         }
     }
 
@@ -78,23 +68,24 @@ class SoundManager {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
 
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(440, now); // A4
-            osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.08); // E5
+            osc.type = "square";
+            osc.frequency.setValueAtTime(330, now);
+            osc.frequency.setValueAtTime(660, now + 0.04);
 
-            gain.gain.setValueAtTime(0.05, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+            gain.gain.setValueAtTime(0.04, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
             osc.connect(gain);
             gain.connect(this.ctx.destination);
 
             osc.start(now);
-            osc.stop(now + 0.16);
+            osc.stop(now + 0.12);
         } catch (e) {}
     }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    const chatForm = document.getElementById("chatForm");
     const messagesContainer = document.getElementById("messagesList");
     const emptyChat = document.getElementById("emptyChat");
     const messageInput = document.getElementById("messageInput");
@@ -116,7 +107,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const toastMessage = document.getElementById("toastMessage");
     const reactionButtons = document.querySelectorAll(".reaction-btn");
     const suggestionChips = document.querySelectorAll(".suggestion-chip");
-    const chatForm = document.getElementById("chatForm");
+
+    if (!messagesContainer || !chatForm) {
+        return;
+    }
 
     const sound = new SoundManager();
     updateSoundIcon();
@@ -145,14 +139,14 @@ document.addEventListener("DOMContentLoaded", () => {
         soundToggle.addEventListener("click", () => {
             const isMuted = sound.toggleMute();
             updateSoundIcon();
-            showToast(isMuted ? "Zvuk vypnut 🔇" : "Zvuk zapnut 🔊");
+            showToast(isMuted ? "[ ZVUK VYPNUT 🔇 ]" : "[ ZVUK ZAPNUT 🔊 ]");
         });
     }
 
     // Clear chat button
     if (clearChatBtn) {
         clearChatBtn.addEventListener("click", async () => {
-            if (!confirm("Opravdu chcete smazat celou historii chatu pro všechny uživatele?")) {
+            if (!confirm("OPRAVDU CHCETE SMAZAT CELOU HISTORII CHATU PRO VŠECHNY UŽIVATELE?")) {
                 return;
             }
             try {
@@ -160,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 await connection.invoke("ClearChat", user);
             } catch (err) {
                 console.error("Chyba při mazání chatu:", err);
-                showToast("Historii se nepodařilo smazat. ❌");
+                showToast("HISTORII SE NEPORAŘILO SMAZAT ❌");
             }
         });
     }
@@ -172,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 if (navigator.clipboard) {
                     await navigator.clipboard.writeText(url);
-                    showToast("Odkaz zkopírován do schránky! 🔗");
+                    showToast("[ ODKAZ ZKOPÍROVÁN DO SCHRÁNKY ]");
                 } else {
                     prompt("Zkopírujte tento odkaz:", url);
                 }
@@ -192,16 +186,13 @@ document.addEventListener("DOMContentLoaded", () => {
     updateUserAvatarUI(currentUsername);
 
     function updateUserAvatarUI(name) {
-        const cleanName = name.trim() || "Host";
+        const cleanName = name.trim() || "HOST";
         const initial = cleanName.charAt(0).toUpperCase();
         if (avatarText) avatarText.textContent = initial;
-        if (userAvatar) {
-            userAvatar.style.backgroundColor = stringToColor(cleanName);
-        }
     }
 
     nicknameInput.addEventListener("input", (e) => {
-        const val = e.target.value.trim() || "Host";
+        const val = e.target.value.trim() || "HOST";
         currentUsername = val;
         localStorage.setItem("chat_username", val);
         updateUserAvatarUI(val);
@@ -214,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
             nicknameInput.value = newName;
             localStorage.setItem("chat_username", newName);
             updateUserAvatarUI(newName);
-            showToast(`Nová přezdívka: ${newName} 🎲`);
+            showToast(`[ PŘEZDÍVKA: ${newName} ]`);
         });
     }
 
@@ -234,18 +225,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     connection.onreconnecting(() => {
-        setStatus("reconnecting", "Obnovuji...");
+        setStatus("reconnecting", "OBNOVUJI...");
         if (sendBtn) sendBtn.disabled = true;
     });
 
     connection.onreconnected(() => {
-        setStatus("connected", "Připojeno");
+        setStatus("connected", "PŘIPOJENO");
         if (sendBtn) sendBtn.disabled = false;
-        showToast("Spojení obnoveno! ⚡");
+        showToast("[ SPOJENÍ OBNOVENO ⚡ ]");
     });
 
     connection.onclose(() => {
-        setStatus("disconnected", "Odpojeno");
+        setStatus("disconnected", "ODPOJENO");
         if (sendBtn) sendBtn.disabled = true;
     });
 
@@ -291,7 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Chat cleared handler
     connection.on("ChatCleared", (clearedByUser) => {
         clearMessagesUI();
-        showToast(`${clearedByUser} smazal(a) historii chatu 🗑️`);
+        showToast(`[ ${clearedByUser.toUpperCase()} SMAZAL HISTORII ]`);
     });
 
     function clearMessagesUI() {
@@ -322,24 +313,23 @@ document.addEventListener("DOMContentLoaded", () => {
             msgDiv.className = "message-item system";
             msgDiv.innerHTML = `<div class="msg-bubble">${escapeHtml(data.message)}</div>`;
         } else {
-            const avatarColor = stringToColor(data.user);
             const userInitial = data.user.charAt(0).toUpperCase();
 
             msgDiv.innerHTML = `
-                ${!isMe ? `<div class="msg-avatar" style="background-color: ${avatarColor};">${userInitial}</div>` : ''}
+                ${!isMe ? `<div class="msg-avatar"><span>${userInitial}</span></div>` : ''}
                 <div class="msg-wrapper">
                     ${!isMe ? `
                         <div class="msg-header">
-                            <span class="msg-author" style="color: ${avatarColor};">${escapeHtml(data.user)}</span>
-                            ${data.ipAddress ? `<span class="msg-ip-badge" title="IP adresa: ${escapeHtml(data.ipAddress)}">🌐 ${escapeHtml(data.ipAddress)}</span>` : ''}
+                            <span class="msg-author">${escapeHtml(data.user)}</span>
+                            ${data.ipAddress ? `<span class="msg-ip-badge" title="IP: ${escapeHtml(data.ipAddress)}">[IP: ${escapeHtml(data.ipAddress)}]</span>` : ''}
                         </div>
                     ` : ''}
                     <div class="msg-bubble" title="Klikněte pro zkopírování textu">
                         <div class="msg-text">${escapeHtml(data.message)}</div>
                         <div class="msg-meta">
-                            ${(isMe && data.ipAddress) ? `<span class="msg-meta-ip" title="Vaše IP: ${escapeHtml(data.ipAddress)}">🌐 ${escapeHtml(data.ipAddress)}</span>` : ''}
+                            ${(isMe && data.ipAddress) ? `<span class="msg-meta-ip" title="Vaše IP: ${escapeHtml(data.ipAddress)}">[IP: ${escapeHtml(data.ipAddress)}]</span>` : ''}
                             <span class="msg-time">${data.timestamp || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                            ${isMe ? `<span class="msg-status-icon" title="Doručeno">✓✓</span>` : ''}
+                            ${isMe ? `<span class="msg-status-icon" title="Doručeno">[✓✓]</span>` : ''}
                         </div>
                     </div>
                 </div>
@@ -350,7 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (bubble) {
                 bubble.addEventListener("click", () => {
                     navigator.clipboard.writeText(data.message).then(() => {
-                        showToast("Text zprávy zkopírován! 📋");
+                        showToast("[ TEXT ZPRÁVY ZKOPÍROVÁN 📋 ]");
                     }).catch(() => {});
                 });
             }
@@ -416,7 +406,7 @@ document.addEventListener("DOMContentLoaded", () => {
             messageInput.focus();
         } catch (err) {
             console.error("Chyba při odesílání zprávy:", err);
-            showToast("Zprávu se nepodařilo odeslat. ❌");
+            showToast("ZPRÁVU SE NEPODAŘILO ODESLAT ❌");
         } finally {
             if (sendBtn) sendBtn.disabled = false;
         }
@@ -449,13 +439,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Start Connection
     async function start() {
         try {
-            setStatus("connecting", "Připojování...");
+            setStatus("connecting", "PŘIPOJOVÁNÍ...");
             await connection.start();
-            setStatus("connected", "Připojeno");
+            setStatus("connected", "PŘIPOJENO");
             if (sendBtn) sendBtn.disabled = false;
         } catch (err) {
             console.error("SignalR Connection Error:", err);
-            setStatus("disconnected", "Chyba spojení");
+            setStatus("disconnected", "CHYBA SPOJENÍ");
             setTimeout(start, 4000);
         }
     }

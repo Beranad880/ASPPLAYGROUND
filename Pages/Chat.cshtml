@@ -1,0 +1,133 @@
+@page "/chat"
+@model WebApplicationASP01.Pages.ChatModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "SIGNALR CHAT";
+}
+
+<main class="brutalist-chat-app">
+    <!-- Chat Header Bar -->
+    <header class="brutalist-chat-header">
+        <div class="chat-header-brand">
+            <div class="chat-brand-icon">⚡</div>
+            <div class="chat-brand-info">
+                <h1>SIGNALR_CHAT</h1>
+                <span class="chat-protocol-stamp">[ WEBSOCKETS // DUPLEX ]</span>
+            </div>
+        </div>
+
+        <div class="chat-header-actions">
+            <div class="stamp-badge stamp-badge-yellow">
+                <span class="status-dot-blink">●</span>
+                <span><strong id="onlineCount">1</strong> ONLINE</span>
+            </div>
+
+            <div class="stamp-badge stamp-badge-status" id="statusBadge">
+                <span id="statusDot" class="status-dot"></span>
+                <span id="statusText">PŘIPOJOVÁNÍ...</span>
+            </div>
+
+            <button type="button" id="soundToggle" class="btn-brutalist btn-brutalist-sm" title="Zapnout/Vypnout zvuk">
+                <span id="soundIcon">🔊</span>
+            </button>
+
+            <button type="button" id="clearChatBtn" class="btn-brutalist btn-brutalist-sm" title="Smazat celou historii chatu">
+                <span>[ NUKE CHAT ]</span>
+            </button>
+
+            <button type="button" id="shareBtn" class="btn-brutalist btn-brutalist-sm" title="Zkopírovat odkaz">
+                <span>[ KOPIE ODKAZU ]</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- User Profile Strip -->
+    <section class="brutalist-user-strip">
+        <div class="user-strip-identity">
+            <div id="userAvatar" class="brutalist-avatar">
+                <span id="avatarText">?</span>
+            </div>
+            <div class="nickname-control">
+                <label for="userInput" class="nickname-label">VAŠE PŘEZDÍVKA:</label>
+                <div class="nickname-input-group">
+                    <input type="text" id="userInput" class="brutalist-input nickname-field" placeholder="Zadej jméno..." maxlength="25" autocomplete="off" />
+                    <button type="button" id="randomNameBtn" class="btn-brutalist btn-dice-btn" title="Vygenerovat náhodnou přezdívku">
+                        <span>🎲 NÁHODNÁ</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="user-strip-meta">
+            <div class="ip-stamp" title="IP adresa zařízení">
+                <span class="ip-label">KLIENT_IP:</span>
+                <span id="userIpText" class="ip-val">@Model.ClientIp</span>
+            </div>
+            <span class="live-hint-tag">⚡ OTEVŘETE VE VÍCE ZÁLOŽKÁCH PRO REAL-TIME TEST</span>
+        </div>
+    </section>
+
+    <!-- Messages Container -->
+    <section id="messagesList" class="brutalist-messages-feed" aria-live="polite">
+        <div id="emptyChat" class="brutalist-empty-box">
+            <div class="empty-badge">[ MÍSTNOST JE PRÁZDNÁ ]</div>
+            <h3>ZATÍM ŽÁDNÉ ZPRÁVY V HISTORII</h3>
+            <p>Napište první zprávu do globálního chatu nebo klikněte na rychlý pozdrav níže:</p>
+            <div class="quick-suggestions-brutalist">
+                <button type="button" class="suggestion-chip" data-msg="Ahoj všem! 👋">[ „Ahoj všem! 👋” ]</button>
+                <button type="button" class="suggestion-chip" data-msg="Brutalist UI jede! ⚡">[ „Brutalist UI jede! ⚡” ]</button>
+                <button type="button" class="suggestion-chip" data-msg="Test z jiného okna 🚀">[ „Test z jiného okna 🚀” ]</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scroll FAB -->
+    <button type="button" id="scrollToBottomBtn" class="brutalist-scroll-fab" title="Přejít na nejnovější zprávy">
+        <span>↓ NEJNOVĚJŠÍ</span>
+    </button>
+
+    <!-- Chat Footer -->
+    <footer class="brutalist-chat-footer">
+        <!-- Reaction Bar -->
+        <div class="brutalist-reaction-bar">
+            <span class="reaction-label">REAKCE:</span>
+            <button type="button" class="reaction-btn" data-emoji="👋">👋</button>
+            <button type="button" class="reaction-btn" data-emoji="👍">👍</button>
+            <button type="button" class="reaction-btn" data-emoji="🔥">🔥</button>
+            <button type="button" class="reaction-btn" data-emoji="❤️">❤️</button>
+            <button type="button" class="reaction-btn" data-emoji="😂">😂</button>
+            <button type="button" class="reaction-btn" data-emoji="🎉">🎉</button>
+            <button type="button" class="reaction-btn" data-emoji="🚀">🚀</button>
+            <button type="button" class="reaction-btn" data-emoji="⚡">⚡</button>
+            <button type="button" class="reaction-btn" data-emoji="💯">💯</button>
+            <button type="button" class="reaction-btn" data-emoji="👀">👀</button>
+        </div>
+
+        <!-- Composer -->
+        <form id="chatForm" class="brutalist-composer">
+            <input 
+                type="text" 
+                id="messageInput" 
+                class="brutalist-input composer-field" 
+                placeholder="Napište zprávu pro všechny připojené klienty..." 
+                autocomplete="off" 
+                maxlength="1000" 
+                required />
+            <button type="submit" id="sendButton" class="btn-brutalist btn-send-btn" disabled>
+                <span class="send-label">ODESLAT</span>
+                <span class="send-arrow">[↵]</span>
+            </button>
+        </form>
+    </footer>
+</main>
+
+<!-- Brutalist Toast Notification -->
+<div id="toastNotification" class="brutalist-toast">
+    <span class="toast-indicator">★</span>
+    <span id="toastMessage">Odkaz byl zkopírován!</span>
+</div>
+
+@section Scripts {
+    <script src="~/js/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/chat.js" asp-append-version="true"></script>
+}

@@ -1,49 +1,27 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using WebApplicationASP01.App;
+using WebApplicationASP01.Services;
 
 namespace WebApplicationASP01.Pages;
 
 public class IndexModel : PageModel
 {
-    public string ClientIp { get; private set; } = "127.0.0.1";
+    private readonly PersonService _personService;
+    private readonly ChatHistoryService _chatHistoryService;
 
-    public void OnGet()
+    public IndexModel(PersonService personService, ChatHistoryService chatHistoryService)
     {
-        if (Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor) && !string.IsNullOrWhiteSpace(forwardedFor))
-        {
-            var ip = forwardedFor.ToString().Split(',').FirstOrDefault()?.Trim();
-            if (!string.IsNullOrEmpty(ip))
-            {
-                ClientIp = ip;
-                return;
-            }
-        }
+        _personService = personService;
+        _chatHistoryService = chatHistoryService;
+    }
 
-        if (Request.Headers.TryGetValue("X-Real-IP", out var realIp) && !string.IsNullOrWhiteSpace(realIp))
-        {
-            var ip = realIp.ToString().Trim();
-            if (!string.IsNullOrEmpty(ip))
-            {
-                ClientIp = ip;
-                return;
-            }
-        }
+    public int PersonCount { get; set; }
+    public int ChatMessageCount { get; set; }
 
-        var remoteIp = HttpContext.Connection.RemoteIpAddress;
-        if (remoteIp != null)
-        {
-            if (remoteIp.IsIPv4MappedToIPv6)
-            {
-                ClientIp = remoteIp.MapToIPv4().ToString();
-            }
-            else if (remoteIp.ToString() == "::1")
-            {
-                ClientIp = "127.0.0.1";
-            }
-            else
-            {
-                ClientIp = remoteIp.ToString();
-            }
-        }
+    public async Task OnGetAsync()
+    {
+        var persons = await _personService.GetAllAsync();
+        PersonCount = persons.Count;
+        ChatMessageCount = _chatHistoryService.GetRecentMessages().Count;
     }
 }
-

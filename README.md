@@ -1,4 +1,4 @@
-# ⚡ SignalR Global Chat & Person CRUD REST API
+# ⚡ ASPNET PLAYGROUND – SignalR Chat & Person CRUD (.NET 10)
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![C#](https://img.shields.io/badge/C%23-13.0-239120?style=for-the-badge&logo=csharp&logoColor=white)](https://learn.microsoft.com/dotnet/csharp/)
@@ -8,18 +8,19 @@
 [![Railway](https://img.shields.io/badge/Deploy-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://railway.com/)
 [![Swagger](https://img.shields.io/badge/Swagger-OpenAPI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://swagger.io/)
 
-Moderní a vysoce výkonná webová aplikace postavená na **ASP.NET Core (.NET 10)**. Spojuje **SignalR Real-Time Global Chat** s plnohodnotným **REST API (CRUD)** pro správu osob, asynchronní servisní architekturou, perzistencí v **PostgreSQL** a moderním uživatelským rozhraním v designovém stylu **Glassmorphism**.
+**ASPNET PLAYGROUND** je moderní a vysoce výkonná webová aplikace postavená na **ASP.NET Core (.NET 10)**. Nabízí rozdělený rozcestník (Split View) se dvěma plnohodnotnými moduly: **SignalR Real-Time Global Chat** a **Person CRUD REST API** pro správu osob napojenou na **PostgreSQL** s interaktivním administračním rozhraním.
 
 ---
 
 ## 🌟 Klíčové vlastnosti
 
-- 💬 **SignalR Real-Time Chat** – Obousměrná komunikace přes WebSockets s automatickým fallbackem, in-memory historií a zvukovými notifikacemi.
-- 👥 **Person CRUD REST API** – Kompletní správa osob s validacemi datových anotací, Guid identifikátory a asynchronním zpracováním.
-- 🐘 **PostgreSQL & EF Core** – Automatické migrace a tvorba schématu (`EnsureCreated`), podpora lokálního PostgreSQL i cloudového napojení přes Railway (`DATABASE_URL`).
-- 📜 **Swagger / OpenAPI** – Interaktivní dokumentace a testování všech REST endpointů přímo v prohlížeči.
-- 🎨 **Moderní Glassmorphism UI** – Responsivní design, animované ambientní světelné koule, matné skleněné prvky a podpora pro mobilní zařízení.
-- ☁️ **Railway & Docker Ready** – Optimalizovaný multi-stage Dockerfile a konfigurační soubor `railway.json` pro okamžité nasazení.
+- 🏠 **ASPNET PLAYGROUND Hub** – Vstupní rozcestník se split-screen výběrem mezi real-time chatem a CRUD aplikací včetně globální navigační lišty.
+- 💬 **SignalR Real-Time Chat (`/chat`)** – Obousměrná komunikace přes WebSockets, živé počítadlo online uživatelů, in-memory historie, syntetizované audio efekty a emoji reakce.
+- 👥 **Person CRUD App (`/persons`)** – Moderní Glassmorphism tabulka s živým vyhledáváním, tvorbou, editací a mazáním osob, validacemi a generátorem náhodných českých osob.
+- 🐘 **PostgreSQL & EF Core** – Automatické migrace schématu (`EnsureCreated`), asynchronní servisní vrstva a podpora lokální i cloudové Railway databáze.
+- 📜 **Swagger / OpenAPI** – Interaktivní dokumentace a testování všech REST endpointů přímo v prohlížeči na `/swagger`.
+- 🎨 **Moderní Pure CSS Glassmorphism** – Responsivní design, animované ambientní světelné koule a matné skleněné karty.
+- ☁️ **Railway & Docker Ready** – Optimalizovaný multi-stage Dockerfile a `railway.json` pro okamžité nasazení.
 
 ---
 
@@ -31,7 +32,7 @@ Moderní a vysoce výkonná webová aplikace postavená na **ASP.NET Core (.NET 
 | **Real-time Engine** | ASP.NET Core SignalR |
 | **ORM & Databáze** | Entity Framework Core, Npgsql (PostgreSQL) |
 | **API Dokumentace** | Swashbuckle Swagger / OpenAPI |
-| **Frontend** | Razor Pages, Vanilla JavaScript (SignalR Client), Pure CSS (Glassmorphism) |
+| **Frontend** | Razor Pages, Vanilla JavaScript, Pure CSS (Glassmorphism) |
 | **Kontejnerizace & Cloud** | Docker (Multi-stage build), Railway |
 
 ---
@@ -52,14 +53,20 @@ WebApplicationASP01/
 ├── Services/
 │   └── ChatHistoryService.cs  # In-memory správa a limitování historie chatu
 ├── Pages/
-│   ├── Index.cshtml           # Razor šablona chatu
-│   ├── Index.cshtml.cs        # PageModel
-│   └── Shared/_Layout.cshtml  # Hlavní HTML layout
+│   ├── Index.cshtml           # ASPNET PLAYGROUND rozcestník (Split View)
+│   ├── Index.cshtml.cs        # PageModel pro Index
+│   ├── Chat.cshtml            # SignalR Real-Time Chat aplikace (/chat)
+│   ├── Chat.cshtml.cs         # PageModel pro Chat
+│   ├── Persons.cshtml         # Person CRUD aplikace (/persons)
+│   ├── Persons.cshtml.cs      # PageModel pro Persons
+│   └── Shared/_Layout.cshtml  # Hlavní layout s globální navigační lištou
 ├── Properties/
 │   └── launchSettings.json    # Profily pro lokální spouštění
 ├── wwwroot/
 │   ├── css/chat.css           # Glassmorphism styly, animace a responzivita
-│   └── js/chat.js             # SignalR klient, obsluha chatu a zvuky
+│   ├── js/chat.js             # SignalR klient, obsluha chatu a zvuky
+│   ├── js/persons.js          # Klient pro Person CRUD, vyhledávání a modály
+│   └── js/signalr.min.js      # SignalR klientská knihovna
 ├── appsettings.json           # Výchozí konfigurace aplikace
 ├── Dockerfile                 # Multi-stage Dockerfile (.NET 10)
 ├── railway.json               # Konfigurace sestavení a nasazení pro Railway

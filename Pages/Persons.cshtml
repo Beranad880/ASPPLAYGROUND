@@ -1,0 +1,251 @@
+@page "/persons"
+@model WebApplicationASP01.Pages.PersonsModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "PERSON CRUD";
+}
+
+<main class="brutalist-crud-app">
+    <!-- CRUD Header -->
+    <header class="brutalist-crud-header">
+        <div class="crud-header-brand">
+            <div class="crud-brand-icon">👥</div>
+            <div class="crud-brand-info">
+                <h1>PERSON_CRUD</h1>
+                <span class="crud-protocol-stamp">[ POSTGRESQL // EF_CORE // REST_API ]</span>
+            </div>
+        </div>
+
+        <div class="crud-header-actions">
+            <div class="stamp-badge stamp-badge-yellow">
+                <span>ZÁZNAMY: <strong id="totalPersonsCount">0</strong></span>
+            </div>
+            <div class="stamp-badge stamp-badge-black">
+                <span>● POSTGRES ACTIVE</span>
+            </div>
+            <a href="/swagger" target="_blank" class="btn-brutalist btn-swagger-link" title="Otevřít Swagger dokumentaci">
+                <span>SWAGGER [↗]</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Toolbar -->
+    <section class="brutalist-crud-toolbar">
+        <div class="brutalist-search-group">
+            <span class="search-prefix">HLEDAT:</span>
+            <input type="text" id="personSearchInput" class="brutalist-input search-input" placeholder="Jméno, email, telefon, rodné číslo, adresa, ID..." autocomplete="off" />
+            <button type="button" id="clearSearchBtn" class="btn-clear-search" title="Vymazat hledání" style="display: none;">[X]</button>
+        </div>
+
+        <div class="brutalist-toolbar-actions">
+            <button type="button" id="openCreateModalBtn" class="btn-brutalist btn-create-action">
+                <span>＋ NOVÁ OSOBA</span>
+            </button>
+            <button type="button" id="generateRandomPersonBtn" class="btn-brutalist btn-random-action" title="Automaticky vygenerovat a uložit náhodnou osobu">
+                <span>🎲 NÁHODNÝ GENERÁTOR</span>
+            </button>
+            <button type="button" id="refreshListBtn" class="btn-brutalist btn-refresh-action" title="Znovu načíst data">
+                <span id="refreshIcon">🔄 OBNOVIT</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Content / Table Card -->
+    <section class="brutalist-table-wrapper">
+        <div class="table-scroll-box">
+            <table class="brutalist-table" id="personsTable">
+                <thead>
+                    <tr>
+                        <th class="col-th-person">OSOBA</th>
+                        <th class="col-th-birth">DATUM NAROZENÍ</th>
+                        <th class="col-th-address">TRVALÁ ADRESA</th>
+                        <th class="col-th-rc">RODNÉ ČÍSLO</th>
+                        <th class="col-th-contact">KONTAKTNÍ ÚDAJE</th>
+                        <th class="col-th-actions text-right">AKCE</th>
+                    </tr>
+                </thead>
+                <tbody id="personsTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyPersonsState" class="brutalist-empty-box" style="display: none;">
+            <div class="empty-badge">[ DATABÁZE JE PRÁZDNÁ ]</div>
+            <h3>ŽÁDNÉ OSOBY NENALEZENY</h3>
+            <p>Vytvořte novou osobu ručně přes formulář nebo použijte 1-klik generátor náhodných záznamů:</p>
+            <div class="empty-actions-row">
+                <button type="button" id="emptyCreateBtn" class="btn-brutalist btn-create-action">
+                    <span>＋ VYTVOŘIT PRVNÍ OSOBU</span>
+                </button>
+                <button type="button" id="emptyGenerateBtn" class="btn-brutalist btn-random-action">
+                    <span>🎲 GENEROVAT NÁHODNOU</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="brutalist-loading-state">
+            <div class="brutalist-spinner"></div>
+            <p>[ NAČÍTÁM DATA Z POSTGRESQL... ]</p>
+        </div>
+    </section>
+</main>
+
+<!-- Modal: Person Detail -->
+<div id="personDetailModal" class="brutalist-modal-overlay" style="display: none;">
+    <div class="brutalist-modal-card modal-detail-card">
+        <div class="modal-top-bar">
+            <div class="modal-title-stamp">
+                <span>📄</span>
+                <h2>DETAIL OSOBY</h2>
+            </div>
+            <button type="button" id="closeDetailModalBtn" class="modal-close-btn" aria-label="Zavřít">[ X ]</button>
+        </div>
+
+        <div class="detail-body">
+            <!-- Header Hero inside detail -->
+            <div class="detail-person-hero">
+                <div class="detail-avatar" id="detailAvatar">
+                    <span id="detailAvatarInitial">?</span>
+                </div>
+                <div class="detail-hero-info">
+                    <h3 id="detailJmeno">Jan Novák</h3>
+                    <div class="detail-id-row">
+                        <span class="detail-id-label">GUID_ID:</span>
+                        <code id="detailIdText" class="detail-id-val">------------------------------------</code>
+                        <button type="button" id="copyDetailIdBtn" class="btn-copy-id" title="Kopírovat celé ID do schránky">[ 📋 COPY ]</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Grid -->
+            <div class="detail-specs-grid">
+                <div class="detail-spec-item">
+                    <span class="detail-spec-key">DATUM NAROZENÍ</span>
+                    <span id="detailDatumNarozeni" class="detail-spec-val">-</span>
+                </div>
+                <div class="detail-spec-item">
+                    <span class="detail-spec-key">VĚK</span>
+                    <span id="detailVek" class="detail-spec-val">-</span>
+                </div>
+                <div class="detail-spec-item">
+                    <span class="detail-spec-key">RODNÉ ČÍSLO</span>
+                    <span id="detailRodneCislo" class="detail-spec-val">-</span>
+                </div>
+                <div class="detail-spec-item">
+                    <span class="detail-spec-key">EMAIL</span>
+                    <a id="detailEmailLink" href="#" class="detail-spec-link">-</a>
+                </div>
+                <div class="detail-spec-item">
+                    <span class="detail-spec-key">TELEFON</span>
+                    <a id="detailTelefonLink" href="#" class="detail-spec-link">-</a>
+                </div>
+                <div class="detail-spec-item full-width">
+                    <span class="detail-spec-key">TRVALÁ ADRESA</span>
+                    <span id="detailTrvalaAdresa" class="detail-spec-val">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions-bar">
+            <button type="button" id="closeDetailBtn" class="btn-brutalist btn-cancel-btn">[ ZAVŘÍT ]</button>
+            <button type="button" id="detailEditBtn" class="btn-brutalist btn-brutalist-yellow">[ ✏️ UPRAVIT ]</button>
+            <button type="button" id="detailDeleteBtn" class="btn-brutalist btn-danger-delete">[ 🗑️ SMAZAT ]</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create / Edit Person -->
+<div id="personModal" class="brutalist-modal-overlay" style="display: none;">
+    <div class="brutalist-modal-card">
+        <div class="modal-top-bar">
+            <div class="modal-title-stamp">
+                <span id="modalIcon">➕</span>
+                <h2 id="modalTitle">NOVÁ OSOBA</h2>
+            </div>
+            <button type="button" id="closeModalBtn" class="modal-close-btn" aria-label="Zavřít">[ X ]</button>
+        </div>
+
+        <form id="personForm" class="brutalist-modal-form" novalidate>
+            <input type="hidden" id="personId" />
+
+            <div class="form-grid">
+                <!-- Jméno -->
+                <div class="form-group full-width">
+                    <label for="formJmeno">CELÉ JMÉNO <span class="required">*</span></label>
+                    <input type="text" id="formJmeno" class="brutalist-input form-input" placeholder="Jan Novák" required maxlength="150" />
+                    <span class="field-error" id="errorJmeno"></span>
+                </div>
+
+                <!-- Datum narození -->
+                <div class="form-group">
+                    <label for="formDatumNarozeni">DATUM NAROZENÍ <span class="required">*</span></label>
+                    <input type="date" id="formDatumNarozeni" class="brutalist-input form-input" required />
+                    <span class="field-error" id="errorDatumNarozeni"></span>
+                </div>
+
+                <!-- Rodné číslo -->
+                <div class="form-group">
+                    <label for="formRodneCislo">RODNÉ ČÍSLO <span class="required">*</span></label>
+                    <input type="text" id="formRodneCislo" class="brutalist-input form-input" placeholder="900515/1234" required maxlength="20" />
+                    <span class="field-error" id="errorRodneCislo"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="formEmail">EMAILOVÁ ADRESA <span class="required">*</span></label>
+                    <input type="email" id="formEmail" class="brutalist-input form-input" placeholder="jan.novak@example.com" required maxlength="150" />
+                    <span class="field-error" id="errorEmail"></span>
+                </div>
+
+                <!-- Telefon -->
+                <div class="form-group">
+                    <label for="formTelefon">TELEFONNÍ ČÍSLO <span class="required">*</span></label>
+                    <input type="tel" id="formTelefon" class="brutalist-input form-input" placeholder="+420 777 123 456" required maxlength="30" />
+                    <span class="field-error" id="errorTelefon"></span>
+                </div>
+
+                <!-- Trvalá adresa -->
+                <div class="form-group full-width">
+                    <label for="formTrvalaAdresa">TRVALÁ ADRESA <span class="required">*</span></label>
+                    <input type="text" id="formTrvalaAdresa" class="brutalist-input form-input" placeholder="Václavské náměstí 1, 110 00 Praha 1" required maxlength="250" />
+                    <span class="field-error" id="errorTrvalaAdresa"></span>
+                </div>
+            </div>
+
+            <div id="generalFormError" class="brutalist-general-error" style="display: none;"></div>
+
+            <div class="modal-actions-bar">
+                <button type="button" id="cancelModalBtn" class="btn-brutalist btn-cancel-btn">[ ZRUŠIT ]</button>
+                <button type="submit" id="savePersonBtn" class="btn-brutalist btn-save-btn">
+                    <span id="saveBtnText">ULOŽIT DO DATABÁZE</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Delete Confirmation -->
+<div id="deleteConfirmModal" class="brutalist-modal-overlay" style="display: none;">
+    <div class="brutalist-modal-card modal-delete-box">
+        <div class="delete-badge-top">[ POZOR // SMAZÁNÍ ]</div>
+        <h3>POTVRZENÍ SMAZÁNÍ</h3>
+        <p id="deleteConfirmMessage">Opravdu si přejete smazat tento záznam z databáze?</p>
+        <div class="modal-delete-actions">
+            <button type="button" id="cancelDeleteBtn" class="btn-brutalist btn-cancel-btn">[ ZRUŠIT ]</button>
+            <button type="button" id="confirmDeleteBtn" class="btn-brutalist btn-danger-delete">[ SMAZAT ZÁZNAM ]</button>
+        </div>
+    </div>
+</div>
+
+<!-- Brutalist Toast Notification -->
+<div id="toastNotification" class="brutalist-toast">
+    <span class="toast-indicator">★</span>
+    <span id="toastMessage">Akce proběhla úspěšně!</span>
+</div>
+
+@section Scripts {
+    <script src="~/js/persons.js" asp-append-version="true"></script>
+}
