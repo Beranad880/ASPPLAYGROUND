@@ -18,7 +18,27 @@ public class PersonService
 
     public async Task<List<Person>> GetAllAsync()
     {
-        return await _context.Persons.AsNoTracking().ToListAsync();
+        return await _context.Persons.AsNoTracking().OrderByDescending(p => p.Id).ToListAsync();
+    }
+
+    public async Task<WebApplicationASP01.Models.PagedResult<Person>> GetPagedAsync(int page = 1, int pageSize = 50)
+    {
+        var query = _context.Persons.AsNoTracking();
+        var total = await query.CountAsync();
+        
+        var items = await query
+            .OrderByDescending(p => p.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new WebApplicationASP01.Models.PagedResult<Person>
+        {
+            Items = items,
+            TotalCount = total,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 
     public async Task<Person?> GetByIdAsync(Guid id)

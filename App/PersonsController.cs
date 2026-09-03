@@ -21,10 +21,10 @@ public class PersonsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Person>>> GetAll()
+    public async Task<ActionResult<WebApplicationASP01.Models.PagedResult<Person>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var list = await _personService.GetAllAsync();
-        return Ok(list);
+        var result = await _personService.GetPagedAsync(page, pageSize);
+        return Ok(result);
     }
 
     [HttpGet("{id:guid}")]

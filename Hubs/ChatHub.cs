@@ -36,7 +36,7 @@ public class ChatHub : Hub
 
         var clientIp = GetClientIpAddress();
         var chatMessage = new ChatMessage(user, message, DateTime.Now, false, clientIp);
-        _historyService.AddMessage(chatMessage);
+        await _historyService.AddMessageAsync(chatMessage);
 
         await Clients.All.SendAsync("ReceiveMessage", new
         {
@@ -63,7 +63,7 @@ public class ChatHub : Hub
             }
         }
 
-        _historyService.ClearMessages();
+        await _historyService.ClearMessagesAsync();
 
         await Clients.All.SendAsync("ChatCleared", user);
     }
@@ -77,7 +77,8 @@ public class ChatHub : Hub
         var clientIp = GetClientIpAddress();
         await Clients.Caller.SendAsync("SetUserIp", clientIp);
 
-        var history = _historyService.GetRecentMessages().Select(m => new
+        var recentMessages = await _historyService.GetRecentMessagesAsync();
+        var history = recentMessages.Select(m => new
         {
             user = m.User,
             message = m.Message,

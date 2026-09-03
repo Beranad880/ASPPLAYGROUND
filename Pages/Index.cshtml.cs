@@ -22,6 +22,7 @@ public class IndexModel : PageModel
     {
         var persons = await _personService.GetAllAsync();
         PersonCount = persons.Count;
-        ChatMessageCount = _chatHistoryService.GetRecentMessages().Count;
+        var messages = await _chatHistoryService.GetRecentMessagesAsync();
+        ChatMessageCount = messages.Count;
     }
 }

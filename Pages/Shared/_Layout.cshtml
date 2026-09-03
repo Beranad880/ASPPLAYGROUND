@@ -26,6 +26,8 @@
             <span class="ticker-sep">///</span>
             <span>POSTGRESQL & EF CORE</span>
             <span class="ticker-sep">///</span>
+            <span>REDIS LINK SHARE</span>
+            <span class="ticker-sep">///</span>
             <span>RAILWAY & DOCKER READY</span>
             <span class="ticker-sep">///</span>
             <span>⚡ ASPNET PLAYGROUND</span>
@@ -35,6 +37,8 @@
             <span>SIGNALR WEBSOCKETS</span>
             <span class="ticker-sep">///</span>
             <span>POSTGRESQL & EF CORE</span>
+            <span class="ticker-sep">///</span>
+            <span>REDIS LINK SHARE</span>
         </div>
     </div>
 
@@ -58,6 +62,14 @@
                 <a href="/persons" class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Persons" ? "active" : "")">
                     <span class="nav-icon">👥</span>
                     <span class="nav-label">CRUD</span>
+                </a>
+                <a href="/link" class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Link" ? "active" : "")">
+                    <span class="nav-icon">🔗</span>
+                    <span class="nav-label">LINK</span>
+                </a>
+                <a href="/check" class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Check" ? "active" : "")">
+                    <span class="nav-icon">🩺</span>
+                    <span class="nav-label">CHECK</span>
                 </a>
                 <a href="/swagger" target="_blank" class="nav-link nav-link-external">
                     <span class="nav-icon">📜</span>

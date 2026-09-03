@@ -17,11 +17,11 @@
             ASPNET<br /><span class="hero-title-highlight">PLAYGROUND</span>
         </h1>
         <p class="hero-subtitle">
-            Dva nezávislé fullstack moduly v jedné aplikaci. Žádné zbytečné kudrlinky. Čistý výkon .NET 10, SignalR WebSockets a PostgreSQL.
+            Tři nezávislé fullstack moduly v jedné aplikaci. Žádné zbytečné kudrlinky. Čistý výkon .NET 10, SignalR WebSockets, PostgreSQL a Redis.
         </p>
     </section>
 
-    <!-- Split Hub Grid -->
+    <!-- Split Hub Grid (3 Modules) -->
     <section class="split-hub-grid">
         <!-- Card 1: Real-Time SignalR Chat -->
         <article class="hub-card hub-card-chat">
@@ -113,9 +113,56 @@
                 </a>
             </div>
         </article>
+
+        <!-- Card 3: Redis Cross-Device Link Share -->
+        <article class="hub-card hub-card-link">
+            <div class="card-header-bar">
+                <span class="card-tag">MODULE_03 // CACHE_SYNC</span>
+                <span class="card-status-badge">● REDIS_READY</span>
+            </div>
+
+            <div class="card-content">
+                <div class="card-title-row">
+                    <span class="card-emoji-box">🔗</span>
+                    <h2>REDIS LINK SHARE</h2>
+                </div>
+                <p class="card-desc">
+                    Bleskové sdílení textů a URL odkazů mezi počítačem, mobilem a tabletem. Ukládání do Redis listu (LPUSH + LTRIM 50) s automatickou expirací 7 dní.
+                </p>
+
+                <div class="brutalist-feature-box">
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>Redis List:</strong> <code>shared:links</code> (LPUSH / LRANGE)</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>Auto Limit & TTL:</strong> Posledních 50 položek, TTL 7 dní</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>Auto URL detekce:</strong> Klikatelné odkazy + 1-klik kopírování</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-bullet">[x]</span>
+                        <span><strong>Graceful Fallback:</strong> In-memory režim při výpadku Redis</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-bottom card-bottom-split">
+                <a href="/link" class="btn-brutalist btn-brutalist-yellow">
+                    <span>OTEVŘÍT LINK SHARE</span>
+                    <span class="btn-arrow">[➔]</span>
+                </a>
+                <a href="/swagger" target="_blank" class="btn-brutalist" title="Swagger OpenAPI">
+                    <span>SWAGGER [↗]</span>
+                </a>
+            </div>
+        </article>
     </section>
 
-    <!-- Brutalist Tech Strip -->
+    <!-- Brutalist Tech Strip (6 items) -->
     <section class="brutalist-specs-grid">
         <div class="spec-cell">
             <span class="spec-key">RUNTIME</span>
@@ -132,6 +179,10 @@
         <div class="spec-cell">
             <span class="spec-key">DATABASE</span>
             <span class="spec-val">POSTGRESQL</span>
+        </div>
+        <div class="spec-cell">
+            <span class="spec-key">CACHE / SYNC</span>
+            <span class="spec-val">REDIS 7+</span>
         </div>
         <div class="spec-cell">
             <span class="spec-key">HOSTING</span>

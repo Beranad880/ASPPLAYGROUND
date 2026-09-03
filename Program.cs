@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using WebApplicationASP01.App;
+using WebApplicationASP01.Extensions;
 using WebApplicationASP01.Hubs;
 using WebApplicationASP01.Services;
 
@@ -12,37 +14,6 @@ Environment.SetEnvironmentVariable("DOTNET_hostBuilder:reloadConfigOnChange", "f
 Environment.SetEnvironmentVariable("ASPNETCORE_hostBuilder:reloadConfigOnChange", "false");
 Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "true");
 
-// 2. Read PostgreSQL environment variables & construct connection string
-var pghost = Environment.GetEnvironmentVariable("PGHOST");
-var pgport = Environment.GetEnvironmentVariable("PGPORT");
-var pgdatabase = Environment.GetEnvironmentVariable("PGDATABASE");
-var pguser = Environment.GetEnvironmentVariable("PGUSER");
-var pgpassword = Environment.GetEnvironmentVariable("PGPASSWORD");
-
-string connectionString;
-
-if (!string.IsNullOrEmpty(pghost) && !string.IsNullOrEmpty(pgdatabase))
-{
-    var port = !string.IsNullOrEmpty(pgport) ? pgport : "5432";
-    var user = !string.IsNullOrEmpty(pguser) ? pguser : "postgres";
-    var pass = !string.IsNullOrEmpty(pgpassword) ? pgpassword : "";
-    var sslMode = Environment.GetEnvironmentVariable("PGSSLMODE")
-        ?? (pghost == "localhost" || pghost == "127.0.0.1" ? "Prefer" : "Require");
-    var trustCert = Environment.GetEnvironmentVariable("PGTRUSTSERVERCERTIFICATE") ?? "true";
-
-    connectionString = $"Host={pghost};Port={port};Database={pgdatabase};Username={user};Password={pass};SSL Mode={sslMode};Trust Server Certificate={trustCert}";
-}
-else
-{
-    // Fallback: Check for URL-based environment variables
-    var rawUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
-        ?? Environment.GetEnvironmentVariable("DATABASE_PRIVATE_URL")
-        ?? Environment.GetEnvironmentVariable("DATABASE_PUBLIC_URL")
-        ?? "Host=localhost;Port=5432;Database=persondb;Username=postgres;Password=postgres;SSL Mode=Prefer;Trust Server Certificate=true";
-
-    connectionString = ParseConnectionString(rawUrl);
-}
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Support Railway & dynamic container PORT environment variable
@@ -52,6 +23,9 @@ if (!string.IsNullOrEmpty(webPort))
     builder.WebHost.UseUrls($"http://0.0.0.0:{webPort}");
 }
 
+// Global Exception Handling (Problem Details)
+builder.Services.AddProblemDetails();
+
 // Add services to the container
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -60,38 +34,54 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
-// 3. Register DbContext with PostgreSQL connection string
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+// Configure Custom Infrastructure (PostgreSQL & Redis)
+builder.Services.AddCustomPostgres();
+builder.Services.AddCustomRedis();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
+
+// App Services
+builder.Services.AddSingleton<LinkService>();
 builder.Services.AddSingleton<ChatHistoryService>();
 builder.Services.AddScoped<PersonService>();
+builder.Services.AddScoped<SystemCheckService>();
 
 var app = builder.Build();
 
-// Ensure PostgreSQL database & tables are created on startup
+// Ensure PostgreSQL database & tables are created on startup (Async Migrations)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var progLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     try
     {
-        db.Database.EnsureCreated();
+        await db.Database.MigrateAsync();
     }
     catch (Exception ex)
     {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogWarning(ex, "Could not automatically initialize PostgreSQL database. Ensure PostgreSQL server is running and accessible.");
+        progLogger.LogWarning(ex, "Nepodařilo se spustit migrace PostgreSQL. Zkontrolujte připojení.");
+    }
+
+    var linkService = scope.ServiceProvider.GetRequiredService<LinkService>();
+    if (linkService.IsRedisAvailable())
+    {
+        progLogger.LogInformation("Redis spojení je aktivní a připravené pro /link.");
+    }
+    else
+    {
+        progLogger.LogWarning("Redis server není momentálně dostupný. /link bude používat in-memory záložní režim.");
     }
 }
 
 app.UseForwardedHeaders();
 
 // Configure HTTP pipeline
+app.UseExceptionHandler(); // Uses ProblemDetails
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -101,7 +91,6 @@ else
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
@@ -112,33 +101,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapRazorPages();
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<LinkHub>("/linkHub");
 
-app.Run();
-
-static string ParseConnectionString(string connStr)
-{
-    if (connStr.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
-        connStr.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
-    {
-        var uri = new Uri(connStr);
-        var userInfo = uri.UserInfo.Split(':');
-        var username = Uri.UnescapeDataString(userInfo[0]);
-        var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
-        var host = uri.Host;
-        var port = uri.Port > 0 ? uri.Port : 5432;
-        var database = uri.AbsolutePath.TrimStart('/');
-
-        var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
-        {
-            Host = host,
-            Port = port,
-            Database = database,
-            Username = username,
-            Password = password,
-            SslMode = Npgsql.SslMode.Prefer
-        };
-        return npgsqlBuilder.ConnectionString;
-    }
-
-    return connStr;
-}
+await app.RunAsync();

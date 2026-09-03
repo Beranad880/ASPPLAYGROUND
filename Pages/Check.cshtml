@@ -1,0 +1,194 @@
+@page "/check"
+@model WebApplicationASP01.Pages.CheckModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "DIAGNOSTIKA // CHECK";
+    var isOverallHealthy = Model.CheckResult.OverallStatus == "Healthy";
+    var isPgOnline = Model.CheckResult.Postgres.IsConnected;
+    var isRedisOnline = Model.CheckResult.Redis.IsConnected;
+}
+
+<main class="brutalist-check-app">
+    <!-- Header -->
+    <header class="brutalist-check-header">
+        <div class="check-header-brand">
+            <div class="check-brand-icon">🩺</div>
+            <div class="check-brand-info">
+                <h1>SYSTEM_CHECK</h1>
+                <span class="check-protocol-stamp">[ POSTGRESQL & REDIS CONNECTIVITY DIAGNOSTICS ]</span>
+            </div>
+        </div>
+
+        <div class="check-header-actions">
+            <div id="overallStatusBadge" class="stamp-badge @(isOverallHealthy ? "stamp-badge-black" : "stamp-badge-yellow")">
+                <span id="overallStatusDot" class="status-dot-blink" style="color: @(isOverallHealthy ? "#30D158" : "#FF9500");">●</span>
+                <span id="overallStatusText">STAV: <strong>@Model.CheckResult.OverallStatus.ToUpperInvariant()</strong></span>
+            </div>
+            <div class="stamp-badge">
+                <span>Doba testu: <strong id="totalDurationText">@Model.CheckResult.TotalCheckDurationMs ms</strong></span>
+            </div>
+            <button type="button" id="retestBtn" class="btn-brutalist btn-brutalist-yellow btn-sm-action">
+                <span id="retestIcon">🔄 OTESTOVAT SPOJENÍ</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Services Grid (PostgreSQL & Redis) -->
+    <section class="check-services-grid">
+        <!-- Card 1: PostgreSQL -->
+        <article class="service-diagnostic-card @(isPgOnline ? "service-online" : "service-offline")" id="pgCard">
+            <div class="service-card-header">
+                <div class="service-title-box">
+                    <span class="service-emoji">🐘</span>
+                    <div>
+                        <h2>POSTGRESQL</h2>
+                        <span class="service-type-label">RDBMS // EF CORE 10</span>
+                    </div>
+                </div>
+                <div class="service-status-pill @(isPgOnline ? "pill-online" : "pill-offline")" id="pgPill">
+                    <span class="status-indicator-dot" style="background: @(isPgOnline ? "#30D158" : "#FF3B30");"></span>
+                    <span id="pgStatusText">@(isPgOnline ? "ONLINE" : "OFFLINE")</span>
+                </div>
+            </div>
+
+            <div class="service-card-body">
+                <div class="service-metric-row">
+                    <div class="metric-box">
+                        <span class="metric-key">LATENCE:</span>
+                        <span class="metric-val" id="pgLatencyText">@Model.CheckResult.Postgres.LatencyMs ms</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-key">STAV KONEKTIVITY:</span>
+                        <span class="metric-val" id="pgConnState">@(isPgOnline ? "ÚSPĚŠNĚ PŘIPOJENO" : "NEPŘIPOJENO")</span>
+                    </div>
+                </div>
+
+                <div class="service-details-box">
+                    <div class="detail-row">
+                        <span class="detail-k">DATABÁZE:</span>
+                        <span class="detail-v" id="pgDbName">@(Model.CheckResult.Postgres.Details.GetValueOrDefault("Database") ?? "-")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-k">DATA SOURCE:</span>
+                        <span class="detail-v" id="pgDataSource">@(Model.CheckResult.Postgres.Details.GetValueOrDefault("DataSource") ?? "-")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-k">VERZE SERVERU:</span>
+                        <span class="detail-v" id="pgVersion">@(Model.CheckResult.Postgres.Details.GetValueOrDefault("ServerVersion") ?? "-")</span>
+                    </div>
+                </div>
+
+                <!-- Error Box -->
+                <div class="service-error-box" id="pgErrorBox" style="display: @(string.IsNullOrEmpty(Model.CheckResult.Postgres.ErrorMessage) ? "none" : "block");">
+                    <div class="error-badge">[ CHYBOVÁ HLÁŠKA ]</div>
+                    <p id="pgErrorMsg">@Model.CheckResult.Postgres.ErrorMessage</p>
+                </div>
+            </div>
+        </article>
+
+        <!-- Card 2: Redis -->
+        <article class="service-diagnostic-card @(isRedisOnline ? "service-online" : "service-offline")" id="redisCard">
+            <div class="service-card-header">
+                <div class="service-title-box">
+                    <span class="service-emoji">⚡</span>
+                    <div>
+                        <h2>REDIS SERVER</h2>
+                        <span class="service-type-label">IN-MEMORY KEY-VALUE // STACKEXCHANGE.REDIS</span>
+                    </div>
+                </div>
+                <div class="service-status-pill @(isRedisOnline ? "pill-online" : "pill-offline")" id="redisPill">
+                    <span class="status-indicator-dot" style="background: @(isRedisOnline ? "#30D158" : "#FF3B30");"></span>
+                    <span id="redisStatusText">@(isRedisOnline ? "ONLINE" : "OFFLINE")</span>
+                </div>
+            </div>
+
+            <div class="service-card-body">
+                <div class="service-metric-row">
+                    <div class="metric-box">
+                        <span class="metric-key">PING LATENCE:</span>
+                        <span class="metric-val" id="redisLatencyText">@Model.CheckResult.Redis.LatencyMs ms</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-key">STAV KONEKTIVITY:</span>
+                        <span class="metric-val" id="redisConnState">@(isRedisOnline ? "ÚSPĚŠNĚ PŘIPOJENO" : "NEPŘIPOJENO")</span>
+                    </div>
+                </div>
+
+                <div class="service-details-box">
+                    <div class="detail-row">
+                        <span class="detail-k">ENDPOINT:</span>
+                        <span class="detail-v" id="redisEndpoint">@(Model.CheckResult.Redis.Details.GetValueOrDefault("Endpoint") ?? "-")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-k">KLIENT:</span>
+                        <span class="detail-v" id="redisClient">@(Model.CheckResult.Redis.Details.GetValueOrDefault("ClientName") ?? "ASPNET_PLAYGROUND")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-k">SDÍLENÝ KLÍČ LINKŮ:</span>
+                        <span class="detail-v">shared:links (LPUSH / LTRIM 50)</span>
+                    </div>
+                </div>
+
+                <!-- Error Box -->
+                <div class="service-error-box" id="redisErrorBox" style="display: @(string.IsNullOrEmpty(Model.CheckResult.Redis.ErrorMessage) ? "none" : "block");">
+                    <div class="error-badge">[ CHYBOVÁ HLÁŠKA ]</div>
+                    <p id="redisErrorMsg">@Model.CheckResult.Redis.ErrorMessage</p>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <!-- Environment Strip & JSON Output -->
+    <section class="check-meta-section">
+        <div class="meta-info-card">
+            <div class="card-header-bar">
+                <span class="card-tag">ENVIRONMENT_META // RUNTIME</span>
+                <span class="card-status-badge">⚡ ASP.NET CORE .NET 10</span>
+            </div>
+            <div class="meta-specs-grid">
+                <div class="meta-spec-item">
+                    <span class="meta-k">RUNTIME FRAMEWORK:</span>
+                    <span class="meta-v">@Model.CheckResult.Environment.Framework</span>
+                </div>
+                <div class="meta-spec-item">
+                    <span class="meta-k">PROSTŘEDÍ:</span>
+                    <span class="meta-v">@Model.CheckResult.Environment.EnvironmentName</span>
+                </div>
+                <div class="meta-spec-item">
+                    <span class="meta-k">OS PLATFORM:</span>
+                    <span class="meta-v">@Model.CheckResult.Environment.OsPlatform</span>
+                </div>
+                <div class="meta-spec-item">
+                    <span class="meta-k">ČAS KONTROLY (UTC):</span>
+                    <span class="meta-v" id="serverUtcTime">@Model.CheckResult.Timestamp.ToString("yyyy-MM-dd HH:mm:ss 'UTC'")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Raw JSON Accordion -->
+        <div class="json-output-card">
+            <div class="json-header-row">
+                <span class="json-title">📡 RAW JSON API RESPONSE (<code>/api/check</code>):</span>
+                <div class="json-actions">
+                    <button type="button" id="copyJsonBtn" class="btn-brutalist btn-sm-action">
+                        <span>📋 KOPÍROVAT JSON</span>
+                    </button>
+                    <a href="/api/check" target="_blank" class="btn-brutalist btn-sm-action">
+                        <span>OTEVŘÍT ENDPOINT [↗]</span>
+                    </a>
+                </div>
+            </div>
+            <pre class="json-display-box" id="rawJsonBox">@System.Text.Json.JsonSerializer.Serialize(Model.CheckResult, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</pre>
+        </div>
+    </section>
+</main>
+
+<!-- Toast Notification -->
+<div id="toastNotification" class="brutalist-toast">
+    <span class="toast-indicator">★</span>
+    <span id="toastMessage">Test proběhl úspěšně!</span>
+</div>
+
+@section Scripts {
+    <script src="~/js/check.js" asp-append-version="true"></script>
+}

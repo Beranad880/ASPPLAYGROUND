@@ -1,0 +1,155 @@
+@page "/link"
+@model WebApplicationASP01.Pages.LinkModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "SDÍLENÍ ODKAZŮ // LINK";
+}
+
+<main class="brutalist-link-app">
+    <!-- Link Header -->
+    <header class="brutalist-link-header">
+        <div class="link-header-brand">
+            <div class="link-brand-icon">🔗</div>
+            <div class="link-brand-info">
+                <h1>REDIS_LINK_SHARE</h1>
+                <span class="link-protocol-stamp">[ REDIS LIST // LPUSH // LTRIM 50 // TTL 7D ]</span>
+            </div>
+        </div>
+
+        <div class="link-header-actions">
+            <div class="stamp-badge stamp-badge-yellow">
+                <span>ZÁZNAMY: <strong id="totalLinksCount">0</strong> / 50</span>
+            </div>
+            <div class="stamp-badge stamp-badge-status" id="redisStatusBadge">
+                <span id="redisStatusDot" class="status-dot"></span>
+                <span id="redisStatusText">OVĚŘOVÁNÍ REDIS...</span>
+            </div>
+            <button type="button" id="clearAllLinksBtn" class="btn-brutalist btn-danger-delete btn-sm-action" title="Smazat celou historii odkazů z Redis">
+                <span>[ 💣 SMAZAT VŠE ]</span>
+            </button>
+            <a href="/swagger" target="_blank" class="btn-brutalist btn-swagger-link" title="Otevřít Swagger dokumentaci">
+                <span>SWAGGER [↗]</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Form / Input Card -->
+    <section class="brutalist-link-composer-card">
+        <div class="card-header-bar">
+            <span class="card-tag">INPUT_STREAM // INSTANT_SHARE</span>
+            <span class="card-status-badge">⚡ CROSS-DEVICE SYNC</span>
+        </div>
+
+        <form id="linkForm" class="link-form-wrapper" novalidate>
+            <div class="link-input-container">
+                <div class="input-label-row">
+                    <label for="linkInput" class="link-input-label">TEXT NEBO URL PRO SDÍLENÍ:</label>
+                    <span class="input-hint-badge">[ CTRL + ENTER PRO RYCHLÉ ULOŽENÍ ]</span>
+                </div>
+                
+                <div class="link-textarea-wrapper">
+                    <textarea 
+                        id="linkInput" 
+                        class="brutalist-input link-textarea" 
+                        placeholder="Vložte sem libovolný text, poznámku, heslo nebo URL odkaz (např. https://github.com/...) a zobrazte jej na jiném zařízení..." 
+                        rows="3" 
+                        maxlength="4000" 
+                        required></textarea>
+                </div>
+            </div>
+
+            <!-- Toolbar / Action buttons -->
+            <div class="link-composer-toolbar">
+                <div class="link-quick-presets">
+                    <span class="presets-label">VZORY:</span>
+                    <button type="button" class="preset-chip" data-text="https://github.com/dotnet/aspnetcore">GitHub ASP.NET</button>
+                    <button type="button" class="preset-chip" data-text="https://redis.io/docs/">Redis Docs</button>
+                    <button type="button" class="preset-chip" data-text="⚡ Rychlá poznámka sdílená z mobilu do PC">Poznámka</button>
+                </div>
+
+                <div class="link-submit-group">
+                    <button type="button" id="pasteFromClipboardBtn" class="btn-brutalist btn-paste-action" title="Vložit text ze schránky zařízení">
+                        <span>📋 VLOŽIT ZE SCHRÁNKY</span>
+                    </button>
+                    <button type="button" id="refreshLinksBtn" class="btn-brutalist btn-refresh-action" title="Znovu načíst data z Redis">
+                        <span id="refreshIcon">🔄 OBNOVIT</span>
+                    </button>
+                    <button type="submit" id="saveLinkBtn" class="btn-brutalist btn-brutalist-yellow btn-save-action">
+                        <span id="saveBtnText">＋ ULOŽIT DO REDIS</span>
+                        <span class="btn-arrow">[↵]</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- Links List Container -->
+    <section class="brutalist-links-feed-wrapper">
+        <div class="feed-header-bar">
+            <div class="feed-title-box">
+                <span class="feed-icon">📋</span>
+                <h2>ULOŽENÉ ZÁZNAMY</h2>
+                <span class="feed-subtext">[ SEŘAZENO OD NEJNOVĚJŠÍHO // AUTO-SYNC AKTIVNÍ ]</span>
+            </div>
+            <div class="feed-auto-sync-indicator">
+                <span class="sync-dot-blink">●</span>
+                <span class="sync-text">LIVE PUSH PŘES SIGNALR</span>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="linksLoadingState" class="brutalist-loading-state">
+            <div class="brutalist-spinner"></div>
+            <p>[ NAČÍTÁM DATA Z REDIS LISTU... ]</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyLinksState" class="brutalist-empty-box" style="display: none;">
+            <div class="empty-badge">[ SEZNAM JE PRÁZDNÝ ]</div>
+            <h3>ŽÁDNÝ ULOŽENÝ TEXT ANI ODKAZ</h3>
+            <p>Zadejte text nebo URL do formuláře výše pro okamžité uložení a sdílení mezi všemi vašimi zařízeními.</p>
+        </div>
+
+        <!-- Links List -->
+        <div id="linksContainer" class="brutalist-links-grid" style="display: none;">
+            <!-- Rendered by JavaScript -->
+        </div>
+    </section>
+</main>
+
+<!-- Modal: Delete Single Link Confirmation -->
+<div id="deleteLinkModal" class="brutalist-modal-overlay" style="display: none;">
+    <div class="brutalist-modal-card modal-delete-box">
+        <div class="delete-badge-top">[ POZOR // SMAZÁNÍ Z REDIS ]</div>
+        <h3>SMAZAT TENTO ZÁZNAM?</h3>
+        <p id="deleteItemPreview" class="delete-preview-text">...</p>
+        <div class="modal-delete-actions">
+            <button type="button" id="cancelDeleteLinkBtn" class="btn-brutalist btn-cancel-btn">[ ZRUŠIT ]</button>
+            <button type="button" id="confirmDeleteLinkBtn" class="btn-brutalist btn-danger-delete">[ SMAZAT ZÁZNAM ]</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Clear All Links Confirmation -->
+<div id="clearAllModal" class="brutalist-modal-overlay" style="display: none;">
+    <div class="brutalist-modal-card modal-delete-box">
+        <div class="delete-badge-top">[ POZOR // SMAZÁNÍ VŠECH ZÁZNAMŮ ]</div>
+        <h3>SMAZAT CELOU HISTORII ODKAZŮ?</h3>
+        <p>Opravdu si přejete trvale odstranit klíč <code>shared:links</code> a všechny uložené texty a URL z Redis?</p>
+        <div class="modal-delete-actions">
+            <button type="button" id="cancelClearAllBtn" class="btn-brutalist btn-cancel-btn">[ ZRUŠIT ]</button>
+            <button type="button" id="confirmClearAllBtn" class="btn-brutalist btn-danger-delete">[ 💣 SMAZAT VŠECHNO ]</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toastNotification" class="brutalist-toast">
+    <span class="toast-indicator">★</span>
+    <span id="toastMessage">Akce proběhla úspěšně!</span>
+</div>
+
+@section Scripts {
+    <script src="~/js/signalr.min.js"></script>
+    <script src="~/js/link.js" asp-append-version="true"></script>
+}

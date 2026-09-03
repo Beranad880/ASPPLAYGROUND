@@ -144,9 +144,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (tableBody) tableBody.style.opacity = "0.5";
 
         try {
-            const res = await fetch("/api/persons");
+            const res = await fetch("/api/persons?page=1&pageSize=200");
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            personsList = await res.json();
+            const data = await res.json();
+            personsList = data.items || [];
             renderTable();
         } catch (err) {
             console.error("Chyba při načítání osob:", err);
