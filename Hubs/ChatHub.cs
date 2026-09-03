@@ -78,6 +78,9 @@ public class ChatHub : Hub
         }
 
         await _historyService.ClearMessagesAsync();
+        
+        // Clear IP to nickname mappings so users can pick new names
+        _ipToNickname.Clear();
 
         await Clients.All.SendAsync("ChatCleared", user);
     }

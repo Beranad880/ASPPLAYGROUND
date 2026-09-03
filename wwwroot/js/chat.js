@@ -302,6 +302,20 @@ document.addEventListener("DOMContentLoaded", () => {
     // Chat cleared handler
     connection.on("ChatCleared", (clearedByUser) => {
         clearMessagesUI();
+        
+        // Unlock nickname input so user can change it again
+        if (nicknameInput) {
+            nicknameInput.disabled = false;
+            nicknameInput.classList.remove("disabled-brutalist");
+            nicknameInput.style.opacity = "1";
+            nicknameInput.style.cursor = "text";
+        }
+        
+        if (randomNameBtn) {
+            randomNameBtn.disabled = false;
+            randomNameBtn.style.display = "";
+        }
+
         showToast(`[ ${clearedByUser.toUpperCase()} SMAZAL HISTORII ]`);
     });
 
