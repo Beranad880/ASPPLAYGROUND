@@ -67,7 +67,7 @@
             </div>
         </article>
 
-        <!-- Card 2: Person CRUD & REST API -->
+        <!-- Card 2: Notes CRUD & REST API -->
         <article class="hub-card hub-card-crud">
             <div class="card-header-bar">
                 <span class="card-tag">MODULE_02 // DATABASE</span>
@@ -76,36 +76,36 @@
 
             <div class="card-content">
                 <div class="card-title-row">
-                    <span class="card-emoji-box">👥</span>
-                    <h2>PERSON CRUD</h2>
+                    <span class="card-emoji-box">📝</span>
+                    <h2>NOTES APP</h2>
                 </div>
                 <p class="card-desc">
-                    Plnohodnotný asynchronní CRUD pro správu osob. Napojeno na PostgreSQL přes Entity Framework Core s interaktivním UI a Swaggerem.
+                    Plnohodnotný asynchronní CRUD pro poznámky. Napojeno na PostgreSQL (EF Core) se SignalR real-time synchronizací a fulltextovým vyhledáváním (ILIKE).
                 </p>
 
                 <div class="brutalist-feature-box">
                     <div class="feature-row">
                         <span class="feature-bullet">[x]</span>
-                        <span><strong>PostgreSQL & EF Core:</strong> Asynchronní dotazy</span>
+                        <span><strong>PostgreSQL & EF Core:</strong> Repository pattern</span>
                     </div>
                     <div class="feature-row">
                         <span class="feature-bullet">[x]</span>
-                        <span><strong>REST API:</strong> Endpointy <code>/api/persons</code></span>
+                        <span><strong>REST API:</strong> Endpointy <code>/api/notes</code></span>
                     </div>
                     <div class="feature-row">
                         <span class="feature-bullet">[x]</span>
-                        <span><strong>Generátor dat:</strong> 1-klik tvorba náhodných osob</span>
+                        <span><strong>SignalR Sync:</strong> Auto-refresh UI po uložení</span>
                     </div>
                     <div class="feature-row">
                         <span class="feature-bullet">[x]</span>
-                        <span><strong>Živé hledání:</strong> Okamžitá klientská filtrace</span>
+                        <span><strong>Vyhledávání:</strong> ILIKE filtr přes databázi</span>
                     </div>
                 </div>
             </div>
 
             <div class="card-bottom card-bottom-split">
-                <a href="/persons" class="btn-brutalist btn-brutalist-yellow">
-                    <span>OTEVŘÍT CRUD</span>
+                <a href="/notes" class="btn-brutalist btn-brutalist-yellow">
+                    <span>OTEVŘÍT POZNÁMKY</span>
                     <span class="btn-arrow">[➔]</span>
                 </a>
                 <a href="/swagger" target="_blank" class="btn-brutalist" title="Swagger OpenAPI">

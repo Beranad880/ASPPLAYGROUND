@@ -1,0 +1,69 @@
+@page
+@model WebApplicationASP01.Pages.NotesModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "POZNÁMKY // NOTES";
+}
+
+<div class="brutalist-app-container">
+    <div class="brutalist-header">
+        <h1>NOTES_MODULE</h1>
+        <span class="badge badge-yellow">REALTIME POSTGRES SYNC</span>
+    </div>
+
+    <div class="notes-toolbar">
+        <input type="text" id="searchInput" class="brutalist-input" placeholder="Hledat poznámky (ILIKE)..." />
+        <button id="newNoteBtn" class="btn-brutalist btn-brutalist-yellow">[ + NOVÁ POZNÁMKA ]</button>
+    </div>
+
+    <div id="notesContainer" class="notes-grid">
+        <!-- Notes rendered here by JS -->
+    </div>
+</div>
+
+<!-- Modal pro uložení poznámky -->
+<div id="noteModal" class="brutalist-modal-overlay" style="display: none;">
+    <div class="brutalist-modal-card">
+        <div class="modal-top-bar">
+            <h2>POZNÁMKA</h2>
+            <button id="closeModalBtn" class="modal-close-btn">[ X ]</button>
+        </div>
+        <form id="noteForm">
+            <input type="hidden" id="noteId" />
+            
+            <div class="form-group full-width">
+                <label>NÁZEV (TITLE) *</label>
+                <input type="text" id="noteTitle" class="brutalist-input full-width" required />
+            </div>
+
+            <div class="form-group full-width" style="margin-top: 15px;">
+                <label>OBSAH (CONTENT)</label>
+                <textarea id="noteContent" class="brutalist-input full-width" rows="10" maxlength="5000"></textarea>
+            </div>
+
+            <div class="modal-actions-bar" style="margin-top: 20px; display: flex; justify-content: space-between;">
+                <button type="button" id="deleteNoteBtn" class="btn-brutalist btn-danger-delete" style="display:none;">[ 🗑️ SMAZAT ]</button>
+                <div style="margin-left: auto;">
+                    <button type="button" id="cancelNoteBtn" class="btn-brutalist btn-cancel-btn">[ ZRUŠIT ]</button>
+                    <button type="submit" class="btn-brutalist btn-save-btn">[ ULOŽIT ]</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .notes-toolbar { display: flex; gap: 15px; margin-bottom: 30px; }
+    .notes-toolbar input { flex: 1; }
+    .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .note-card { border: 3px solid #000; padding: 20px; background: #fff; box-shadow: 6px 6px 0px #000; transition: transform 0.1s; cursor: pointer; }
+    .note-card:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0px #FFE500; }
+    .note-title { font-size: 1.2rem; font-weight: 900; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .note-content { font-size: 0.95rem; white-space: pre-wrap; line-height: 1.4; color: #333; height: 100px; overflow: hidden; }
+    .note-meta { margin-top: 15px; font-size: 0.75rem; font-weight: bold; background: #000; color: #fff; padding: 5px; display: inline-block; }
+</style>
+
+@section Scripts {
+    <script src="~/js/signalr.min.js"></script>
+    <script src="~/js/notes.js" asp-append-version="true"></script>
+}

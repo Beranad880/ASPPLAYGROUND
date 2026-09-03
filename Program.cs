@@ -64,9 +64,10 @@ builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 
 // App Services
+builder.Services.AddScoped<WebApplicationASP01.Data.INoteRepository, WebApplicationASP01.Data.NoteRepository>();
+builder.Services.AddScoped<WebApplicationASP01.Services.NoteService>();
 builder.Services.AddSingleton<LinkService>();
 builder.Services.AddSingleton<ChatHistoryService>();
-builder.Services.AddScoped<PersonService>();
 builder.Services.AddScoped<SystemCheckService>();
 
 var app = builder.Build();
@@ -125,6 +126,6 @@ app.MapControllers();
 app.MapRazorPages();
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<LinkHub>("/linkHub");
-app.MapHub<WebApplicationASP01.Hubs.PersonHub>("/personHub");
+app.MapHub<WebApplicationASP01.Hubs.NotesHub>("/notesHub");
 
 await app.RunAsync();
