@@ -4,14 +4,14 @@ using WebApplicationASP01.App;
 using WebApplicationASP01.Hubs;
 using WebApplicationASP01.Services;
 
-// Disable config file watching to prevent inotify limit crashes in Linux / Render containers
+// Disable config file watching to prevent inotify limit crashes in Linux / Railway containers
 Environment.SetEnvironmentVariable("DOTNET_hostBuilder:reloadConfigOnChange", "false");
 Environment.SetEnvironmentVariable("ASPNETCORE_hostBuilder:reloadConfigOnChange", "false");
 Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "true");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Support Render & dynamic container PORT environment variable
+// Support Railway & dynamic container PORT environment variable
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(port))
 {
@@ -26,8 +26,10 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
-// Configure PostgreSQL DbContext
+// Configure PostgreSQL DbContext (supports Railway DATABASE_URL, DATABASE_PRIVATE_URL, DATABASE_PUBLIC_URL)
 var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? Environment.GetEnvironmentVariable("DATABASE_PRIVATE_URL")
+    ?? Environment.GetEnvironmentVariable("DATABASE_PUBLIC_URL")
     ?? builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? "Host=localhost;Port=5432;Database=persondb;Username=postgres;Password=test";
 
@@ -110,7 +112,7 @@ static string ParseConnectionString(string connStr)
             Database = database,
             Username = username,
             Password = password,
-            SslMode = Npgsql.SslMode.Require
+            SslMode = Npgsql.SslMode.Prefer
         };
         return npgsqlBuilder.ConnectionString;
     }
