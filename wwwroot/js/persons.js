@@ -43,11 +43,6 @@ function generateRandomPersonData() {
     const birthDay = Math.floor(1 + Math.random() * 28);
     const dateStr = `${birthYear}-${String(birthMonth).padStart(2, "0")}-${String(birthDay).padStart(2, "0")}`;
 
-    const rcMonth = isFemale ? birthMonth + 50 : birthMonth;
-    const rcPart1 = `${String(birthYear % 100).padStart(2, "0")}${String(rcMonth).padStart(2, "0")}${String(birthDay).padStart(2, "0")}`;
-    const rcPart2 = String(Math.floor(1000 + Math.random() * 9000));
-    const rodneCislo = `${rcPart1}/${rcPart2}`;
-
     const phonePrefixes = ["+420 602", "+420 603", "+420 721", "+420 732", "+420 774", "+420 777", "+420 776"];
     const phonePrefix = phonePrefixes[Math.floor(Math.random() * phonePrefixes.length)];
     const phoneRest = `${Math.floor(100 + Math.random() * 900)} ${Math.floor(100 + Math.random() * 900)}`;
@@ -66,7 +61,6 @@ function generateRandomPersonData() {
         jmeno: `${firstName} ${lastName}`,
         datumNarozeni: dateStr,
         trvalaAdresa: trvalaAdresa,
-        rodneCislo: rodneCislo,
         telefon: telefon,
         email: email
     };
@@ -168,13 +162,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
         const filtered = personsList.filter(p => {
-            if (!query) return true;
             return (
                 (p.jmeno && p.jmeno.toLowerCase().includes(query)) ||
                 (p.id && p.id.toLowerCase().includes(query)) ||
                 (p.email && p.email.toLowerCase().includes(query)) ||
                 (p.telefon && p.telefon.toLowerCase().includes(query)) ||
-                (p.rodneCislo && p.rodneCislo.toLowerCase().includes(query)) ||
                 (p.trvalaAdresa && p.trvalaAdresa.toLowerCase().includes(query))
             );
         });
@@ -221,9 +213,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="address-cell" title="${escapeHtml(person.trvalaAdresa)}">
                         <span>📍 ${escapeHtml(person.trvalaAdresa)}</span>
                     </div>
-                </td>
-                <td class="col-rc">
-                    <span class="rc-badge">[ ${escapeHtml(person.rodneCislo)} ]</span>
                 </td>
                 <td class="col-contact">
                     <div class="contact-cell">

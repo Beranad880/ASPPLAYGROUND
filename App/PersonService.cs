@@ -54,7 +54,6 @@ public class PersonService
             Jmeno = dto.Jmeno,
             DatumNarozeni = dto.DatumNarozeni,
             TrvalaAdresa = dto.TrvalaAdresa,
-            RodneCislo = dto.RodneCislo,
             Telefon = dto.Telefon,
             Email = dto.Email
         };
@@ -75,7 +74,6 @@ public class PersonService
         person.Jmeno = dto.Jmeno;
         person.DatumNarozeni = dto.DatumNarozeni;
         person.TrvalaAdresa = dto.TrvalaAdresa;
-        person.RodneCislo = dto.RodneCislo;
         person.Telefon = dto.Telefon;
         person.Email = dto.Email;
 

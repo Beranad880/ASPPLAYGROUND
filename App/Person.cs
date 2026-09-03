@@ -18,10 +18,6 @@ public class Person
     public string TrvalaAdresa { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(20)]
-    public string RodneCislo { get; set; } = string.Empty;
-
-    [Required]
     [MaxLength(30)]
     public string Telefon { get; set; } = string.Empty;
 
@@ -43,9 +39,6 @@ public class CreatePersonDto
     public string TrvalaAdresa { get; set; } = string.Empty;
 
     [Required]
-    public string RodneCislo { get; set; } = string.Empty;
-
-    [Required]
     public string Telefon { get; set; } = string.Empty;
 
     [Required]
@@ -63,9 +56,6 @@ public class UpdatePersonDto
 
     [Required]
     public string TrvalaAdresa { get; set; } = string.Empty;
-
-    [Required]
-    public string RodneCislo { get; set; } = string.Empty;
 
     [Required]
     public string Telefon { get; set; } = string.Empty;
