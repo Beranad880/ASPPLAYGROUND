@@ -71,7 +71,16 @@ public static class ServiceCollectionExtensions
 
             try
             {
-                redisOptions = ConfigurationOptions.Parse(rawRedisUrl);
+                if (rawRedisUrl.StartsWith("redis://", StringComparison.OrdinalIgnoreCase) || 
+                    rawRedisUrl.StartsWith("rediss://", StringComparison.OrdinalIgnoreCase))
+                {
+                    redisOptions = ParseRedisUrl(rawRedisUrl);
+                }
+                else
+                {
+                    redisOptions = ConfigurationOptions.Parse(rawRedisUrl);
+                }
+
                 redisOptions.AbortOnConnectFail = false;
                 redisOptions.ConnectTimeout = 5000;
                 redisOptions.SyncTimeout = 5000;
@@ -131,5 +140,32 @@ public static class ServiceCollectionExtensions
             return builder.ConnectionString;
         }
         return connStr;
+    }
+
+    private static ConfigurationOptions ParseRedisUrl(string rawUrl)
+    {
+        var uri = new Uri(rawUrl);
+        var options = new ConfigurationOptions
+        {
+            EndPoints = { { uri.Host, uri.Port > 0 ? uri.Port : 6379 } },
+            Ssl = rawUrl.StartsWith("rediss://", StringComparison.OrdinalIgnoreCase)
+        };
+
+        var userInfo = uri.UserInfo.Split(':');
+        if (userInfo.Length > 1)
+        {
+            var user = Uri.UnescapeDataString(userInfo[0]);
+            if (!string.IsNullOrEmpty(user) && user != "default")
+            {
+                options.User = user;
+            }
+            options.Password = Uri.UnescapeDataString(userInfo[1]);
+        }
+        else if (userInfo.Length == 1 && !string.IsNullOrEmpty(userInfo[0]))
+        {
+            options.Password = Uri.UnescapeDataString(userInfo[0]);
+        }
+
+        return options;
     }
 }
