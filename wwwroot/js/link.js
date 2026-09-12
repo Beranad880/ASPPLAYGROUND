@@ -1,6 +1,6 @@
 /**
- * ASPNET PLAYGROUND - Redis Link Sharing Client
- * Spravuje okamžité sdílení textů a URL odkazů napříč zařízeními přes Redis REST API.
+ * ASPNET PLAYGROUND - Link Sharing Client
+ * Spravuje okamžité sdílení textů a URL odkazů napříč zařízeními přes REST API.
  */
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -111,17 +111,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     redisStatusDot.style.background = '#30D158';
                 }
                 if (redisStatusText) {
-                    redisStatusText.textContent = '● REDIS ACTIVE';
+                    redisStatusText.textContent = '● STORAGE ACTIVE';
                 }
             } else {
                 if (redisStatusBadge) {
                     redisStatusBadge.className = 'stamp-badge stamp-badge-yellow';
                 }
                 if (redisStatusDot) {
-                    redisStatusDot.style.background = '#FF9500';
+                    redisStatusDot.style.background = '#30D158';
                 }
                 if (redisStatusText) {
-                    redisStatusText.textContent = '● IN-MEMORY FALLBACK';
+                    redisStatusText.textContent = '● IN-MEMORY STORAGE';
                 }
             }
         } catch (err) {
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Chyba při načítání odkazů z API:', err);
             if (!isBackground) {
-                showToast('Chyba při načítání dat z Redis serveru.', true);
+                showToast('Chyba při načítání dat z úložiště.', true);
             }
         } finally {
             if (linksLoadingState) linksLoadingState.style.display = 'none';
@@ -307,17 +307,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const created = await res.json();
             linkInput.value = '';
-            showToast(created.isUrl ? '✓ URL odkaz byl uložen do Redis!' : '✓ Text byl uložen do Redis!');
+            showToast(created.isUrl ? '✓ URL odkaz byl uložen!' : '✓ Text byl uložen!');
 
             // Immediate re-fetch and render
             await loadLinks(false);
             await checkStatus();
         } catch (err) {
-            console.error('Chyba při ukládání do Redis:', err);
+            console.error('Chyba při ukládání:', err);
             showToast(`Chyba: ${err.message}`, true);
         } finally {
             saveLinkBtn.disabled = false;
-            if (saveBtnText) saveBtnText.textContent = '＋ ULOŽIT DO REDIS';
+            if (saveBtnText) saveBtnText.textContent = '＋ ULOŽIT ODKAZ';
             linkInput.focus();
         }
     }
@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (res.ok || res.status === 204 || res.status === 200) {
-                    showToast('Záznam byl smazán z Redis.');
+                    showToast('Záznam byl smazán.');
                     if (deleteLinkModal) deleteLinkModal.style.display = 'none';
                     linkIdToDelete = null;
                     await loadLinks(false);
@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (res.ok) {
-                    showToast('Všechny odkazy byly úspěšně smazány z Redis.');
+                    showToast('Všechny odkazy byly úspěšně smazány.');
                     if (clearAllModal) clearAllModal.style.display = 'none';
                     await loadLinks(false);
                     await checkStatus();

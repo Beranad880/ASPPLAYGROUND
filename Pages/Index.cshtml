@@ -17,7 +17,7 @@
             ASPNET<br /><span class="hero-title-highlight">PLAYGROUND</span>
         </h1>
         <p class="hero-subtitle">
-            Tři nezávislé fullstack moduly v jedné aplikaci. Žádné zbytečné kudrlinky. Čistý výkon .NET 10, SignalR WebSockets, PostgreSQL a Redis.
+            Tři nezávislé fullstack moduly v jedné aplikaci. Žádné zbytečné kudrlinky. Čistý výkon .NET 10, SignalR WebSockets a PostgreSQL.
         </p>
     </section>
 
@@ -114,30 +114,30 @@
             </div>
         </article>
 
-        <!-- Card 3: Redis Cross-Device Link Share -->
+        <!-- Card 3: Cross-Device Link Share -->
         <article class="hub-card hub-card-link">
             <div class="card-header-bar">
                 <span class="card-tag">MODULE_03 // CACHE_SYNC</span>
-                <span class="card-status-badge">● REDIS_READY</span>
+                <span class="card-status-badge">● LINK_READY</span>
             </div>
 
             <div class="card-content">
                 <div class="card-title-row">
                     <span class="card-emoji-box">🔗</span>
-                    <h2>REDIS LINK SHARE</h2>
+                    <h2>LINK SHARE</h2>
                 </div>
                 <p class="card-desc">
-                    Bleskové sdílení textů a URL odkazů mezi počítačem, mobilem a tabletem. Ukládání do Redis listu (LPUSH + LTRIM 50) s automatickou expirací 7 dní.
+                    Bleskové sdílení textů a URL odkazů mezi počítačem, mobilem a tabletem. Ukládání do sdíleného seznamu odkazů s automatickou expirací 7 dní.
                 </p>
 
                 <div class="brutalist-feature-box">
                     <div class="feature-row">
                         <span class="feature-bullet">[x]</span>
-                        <span><strong>Redis List:</strong> <code>shared:links</code> (LPUSH / LRANGE)</span>
+                        <span><strong>Link Storage:</strong> <code>shared:links</code></span>
                     </div>
                     <div class="feature-row">
                         <span class="feature-bullet">[x]</span>
-                        <span><strong>Auto Limit & TTL:</strong> Posledních 50 položek, TTL 7 dní</span>
+                        <span><strong>Auto Limit &amp; TTL:</strong> Posledních 50 položek, TTL 7 dní</span>
                     </div>
                     <div class="feature-row">
                         <span class="feature-bullet">[x]</span>
@@ -145,7 +145,7 @@
                     </div>
                     <div class="feature-row">
                         <span class="feature-bullet">[x]</span>
-                        <span><strong>Graceful Fallback:</strong> In-memory režim při výpadku Redis</span>
+                        <span><strong>Graceful Fallback:</strong> In-memory záložní režim</span>
                     </div>
                 </div>
             </div>
@@ -182,7 +182,7 @@
         </div>
         <div class="spec-cell">
             <span class="spec-key">CACHE / SYNC</span>
-            <span class="spec-val">REDIS 7+</span>
+            <span class="spec-val">IN-MEMORY</span>
         </div>
         <div class="spec-cell">
             <span class="spec-key">HOSTING</span>

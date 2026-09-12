@@ -1,6 +1,6 @@
 /**
  * ASPNET PLAYGROUND - System Diagnostics Client (/check)
- * Provádí živé testování konektivity k PostgreSQL a Redis serverům.
+ * Provádí živé testování konektivity k PostgreSQL a IMemoryCache serverům.
  */
 document.addEventListener('DOMContentLoaded', () => {
     const retestBtn = document.getElementById('retestBtn');
@@ -26,16 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const pgErrorBox = document.getElementById('pgErrorBox');
     const pgErrorMsg = document.getElementById('pgErrorMsg');
 
-    // Redis Elements
-    const redisCard = document.getElementById('redisCard');
-    const redisPill = document.getElementById('redisPill');
-    const redisStatusText = document.getElementById('redisStatusText');
-    const redisLatencyText = document.getElementById('redisLatencyText');
-    const redisConnState = document.getElementById('redisConnState');
-    const redisEndpoint = document.getElementById('redisEndpoint');
-    const redisClient = document.getElementById('redisClient');
-    const redisErrorBox = document.getElementById('redisErrorBox');
-    const redisErrorMsg = document.getElementById('redisErrorMsg');
+    // Cache Elements
+    const cacheCard = document.getElementById('cacheCard');
+    const cachePill = document.getElementById('cachePill');
+    const cacheStatusText = document.getElementById('cacheStatusText');
+    const cacheLatencyText = document.getElementById('cacheLatencyText');
+    const cacheConnState = document.getElementById('cacheConnState');
+    const cacheStorageType = document.getElementById('cacheStorageType');
+    const cacheCachedItems = document.getElementById('cacheCachedItems');
+    const cacheErrorBox = document.getElementById('cacheErrorBox');
+    const cacheErrorMsg = document.getElementById('cacheErrorMsg');
 
     const toast = document.getElementById('toastNotification');
     const toastMessage = document.getElementById('toastMessage');
@@ -80,15 +80,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateUI(data) {
         const isHealthy = data.overallStatus === 'Healthy';
-        const isPgOk = data.postgres.isConnected;
-        const isRedisOk = data.redis.isConnected;
+        const isPgOk = data.postgres && data.postgres.isConnected;
+        const cacheData = data.cache || data.redis || {};
+        const isCacheOk = cacheData.isConnected;
 
         // Overall
         if (overallStatusBadge) {
             overallStatusBadge.className = `stamp-badge ${isHealthy ? 'stamp-badge-black' : 'stamp-badge-yellow'}`;
         }
         if (overallStatusDot) {
-            overallStatusDot.style.color = isHealthy ? '#30D158' : (isPgOk || isRedisOk ? '#FF9500' : '#FF3B30');
+            overallStatusDot.style.color = isHealthy ? '#30D158' : (isPgOk || isCacheOk ? '#FF9500' : '#FF3B30');
         }
         if (overallStatusText) {
             overallStatusText.innerHTML = `STAV: <strong>${data.overallStatus.toUpperCase()}</strong>`;
@@ -117,15 +118,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dot) dot.style.background = isPgOk ? '#30D158' : '#FF3B30';
         }
         if (pgStatusText) pgStatusText.textContent = isPgOk ? 'ONLINE' : 'OFFLINE';
-        if (pgLatencyText) pgLatencyText.textContent = `${data.postgres.latencyMs} ms`;
+        if (pgLatencyText) pgLatencyText.textContent = `${data.postgres ? data.postgres.latencyMs : 0} ms`;
         if (pgConnState) pgConnState.textContent = isPgOk ? 'ÚSPĚŠNĚ PŘIPOJENO' : 'NEPŘIPOJENO';
 
-        if (pgDbName) pgDbName.textContent = (data.postgres.details && data.postgres.details.Database) || '-';
-        if (pgDataSource) pgDataSource.textContent = (data.postgres.details && data.postgres.details.DataSource) || '-';
-        if (pgVersion) pgVersion.textContent = (data.postgres.details && data.postgres.details.ServerVersion) || '-';
+        if (pgDbName) pgDbName.textContent = (data.postgres && data.postgres.details && data.postgres.details.Database) || '-';
+        if (pgDataSource) pgDataSource.textContent = (data.postgres && data.postgres.details && data.postgres.details.DataSource) || '-';
+        if (pgVersion) pgVersion.textContent = (data.postgres && data.postgres.details && data.postgres.details.ServerVersion) || '-';
 
         if (pgErrorBox) {
-            if (data.postgres.errorMessage) {
+            if (data.postgres && data.postgres.errorMessage) {
                 pgErrorBox.style.display = 'block';
                 if (pgErrorMsg) pgErrorMsg.textContent = data.postgres.errorMessage;
             } else {
@@ -133,28 +134,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Redis
-        if (redisCard) {
-            redisCard.className = `service-diagnostic-card ${isRedisOk ? 'service-online' : 'service-offline'}`;
+        // Cache / MemoryCache
+        if (cacheCard) {
+            cacheCard.className = `service-diagnostic-card ${isCacheOk ? 'service-online' : 'service-offline'}`;
         }
-        if (redisPill) {
-            redisPill.className = `service-status-pill ${isRedisOk ? 'pill-online' : 'pill-offline'}`;
-            const dot = redisPill.querySelector('.status-indicator-dot');
-            if (dot) dot.style.background = isRedisOk ? '#30D158' : '#FF3B30';
+        if (cachePill) {
+            cachePill.className = `service-status-pill ${isCacheOk ? 'pill-online' : 'pill-offline'}`;
+            const dot = cachePill.querySelector('.status-indicator-dot');
+            if (dot) dot.style.background = isCacheOk ? '#30D158' : '#FF3B30';
         }
-        if (redisStatusText) redisStatusText.textContent = isRedisOk ? 'ONLINE' : 'OFFLINE';
-        if (redisLatencyText) redisLatencyText.textContent = `${data.redis.latencyMs} ms`;
-        if (redisConnState) redisConnState.textContent = isRedisOk ? 'ÚSPĚŠNĚ PŘIPOJENO' : 'NEPŘIPOJENO';
+        if (cacheStatusText) cacheStatusText.textContent = isCacheOk ? 'ONLINE' : 'OFFLINE';
+        if (cacheLatencyText) cacheLatencyText.textContent = `${cacheData.latencyMs || 0} ms`;
+        if (cacheConnState) cacheConnState.textContent = isCacheOk ? 'AKTIVNÍ' : 'NEAKTIVNÍ';
 
-        if (redisEndpoint) redisEndpoint.textContent = (data.redis.details && data.redis.details.Endpoint) || '-';
-        if (redisClient) redisClient.textContent = (data.redis.details && data.redis.details.ClientName) || '-';
+        if (cacheStorageType) cacheStorageType.textContent = (cacheData.details && cacheData.details.StorageType) || '-';
+        if (cacheCachedItems) cacheCachedItems.textContent = (cacheData.details && cacheData.details.CachedItems) || '-';
 
-        if (redisErrorBox) {
-            if (data.redis.errorMessage) {
-                redisErrorBox.style.display = 'block';
-                if (redisErrorMsg) redisErrorMsg.textContent = data.redis.errorMessage;
+        if (cacheErrorBox) {
+            if (cacheData.errorMessage) {
+                cacheErrorBox.style.display = 'block';
+                if (cacheErrorMsg) cacheErrorMsg.textContent = cacheData.errorMessage;
             } else {
-                redisErrorBox.style.display = 'none';
+                cacheErrorBox.style.display = 'none';
             }
         }
 
