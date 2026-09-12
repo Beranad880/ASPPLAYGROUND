@@ -23,7 +23,7 @@ public class LinksController : ControllerBase
     }
 
     /// <summary>
-    /// Vrátí seznam všech uložených textů/URL z Redis seřazených od nejnovějšího.
+    /// Vrátí seznam všech uložených textů/URL seřazených od nejnovějšího.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(List<LinkEntry>), StatusCodes.Status200OK)]
@@ -34,7 +34,7 @@ public class LinksController : ControllerBase
     }
 
     /// <summary>
-    /// Uloží nový text nebo URL odkaz do Redis listu (LPUSH + LTRIM na 50 + TTL 7 dní).
+    /// Uloží nový text nebo URL odkaz do in-memory cache (FIFO, limit 50, TTL 7 dní).
     /// </summary>
     [HttpPost]
     [ProducesResponseType(typeof(LinkEntry), StatusCodes.Status201Created)]
@@ -57,7 +57,7 @@ public class LinksController : ControllerBase
     }
 
     /// <summary>
-    /// Vrátí stav Redis připojení a počet uložených odkazů.
+    /// Vrátí stav úložiště a počet uložených odkazů.
     /// </summary>
     [HttpGet("status")]
     [ProducesResponseType(typeof(LinkServiceStatus), StatusCodes.Status200OK)]
@@ -68,7 +68,7 @@ public class LinksController : ControllerBase
     }
 
     /// <summary>
-    /// Smaže všechny uložené záznamy z Redis (smazání klíče "shared:links").
+    /// Smaže všechny uložené záznamy z cache.
     /// </summary>
     [HttpDelete("clear")]
     [ProducesResponseType(StatusCodes.Status200OK)]

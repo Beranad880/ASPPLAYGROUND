@@ -1,22 +1,31 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace WebApplicationASP01.Models;
 
 /// <summary>
-/// Model reprezentující uložený text nebo URL odkaz sdílený přes Redis.
+/// Model reprezentující uložený text nebo URL odkaz sdílený přes PostgreSQL.
 /// </summary>
+[Table("shared_links")]
 public class LinkEntry
 {
+    [Key]
+    [Column("id")]
     [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
 
+    [Required]
+    [MaxLength(4000)]
+    [Column("content")]
     [JsonPropertyName("content")]
     public string Content { get; set; } = string.Empty;
 
+    [Column("created_at")]
     [JsonPropertyName("createdAt")]
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
+    [Column("is_url")]
     [JsonPropertyName("isUrl")]
     public bool IsUrl { get; set; }
 
@@ -78,27 +87,18 @@ public class CreateLinkDto
 }
 
 /// <summary>
-/// Stavové informace o úložišti a Redis připojení.
+/// Stavové informace o úložišti PostgreSQL.
 /// </summary>
 public class LinkServiceStatus
 {
-    [JsonPropertyName("isRedisConnected")]
-    public bool IsRedisConnected { get; set; }
-
     [JsonPropertyName("storageType")]
-    public string StorageType { get; set; } = "Redis";
+    public string StorageType { get; set; } = "PostgreSQL";
 
     [JsonPropertyName("count")]
     public int Count { get; set; }
 
-    [JsonPropertyName("redisKey")]
-    public string RedisKey { get; set; } = "shared:links";
-
     [JsonPropertyName("maxLimit")]
     public int MaxLimit { get; set; } = 50;
-
-    [JsonPropertyName("ttlDays")]
-    public int TtlDays { get; set; } = 7;
 
     [JsonPropertyName("message")]
     public string? Message { get; set; }

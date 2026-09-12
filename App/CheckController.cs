@@ -17,7 +17,7 @@ public class CheckController : ControllerBase
     }
 
     /// <summary>
-    /// Provede kompletní kontrolu konektivity k PostgreSQL databázi a Redis serveru.
+    /// Provede kompletní kontrolu konektivity k PostgreSQL databázi a stavu IMemoryCache.
     /// </summary>
     /// <returns>Detailní stav obou služeb včetně latence, verzí a případných chyb.</returns>
     [HttpGet]

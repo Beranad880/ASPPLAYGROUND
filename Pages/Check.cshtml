@@ -5,7 +5,7 @@
     ViewData["Title"] = "DIAGNOSTIKA // CHECK";
     var isOverallHealthy = Model.CheckResult.OverallStatus == "Healthy";
     var isPgOnline = Model.CheckResult.Postgres.IsConnected;
-    var isRedisOnline = Model.CheckResult.Redis.IsConnected;
+    var isCacheOnline = Model.CheckResult.Cache.IsConnected;
 }
 
 <main class="brutalist-check-app">
@@ -15,7 +15,7 @@
             <div class="check-brand-icon">🩺</div>
             <div class="check-brand-info">
                 <h1>SYSTEM_CHECK</h1>
-                <span class="check-protocol-stamp">[ POSTGRESQL & REDIS CONNECTIVITY DIAGNOSTICS ]</span>
+                <span class="check-protocol-stamp">[ POSTGRESQL &amp; MEMORYCACHE CONNECTIVITY DIAGNOSTICS ]</span>
             </div>
         </div>
 
@@ -33,7 +33,7 @@
         </div>
     </header>
 
-    <!-- Services Grid (PostgreSQL & Redis) -->
+    <!-- Services Grid (PostgreSQL & IMemoryCache) -->
     <section class="check-services-grid">
         <!-- Card 1: PostgreSQL -->
         <article class="service-diagnostic-card @(isPgOnline ? "service-online" : "service-offline")" id="pgCard">
@@ -86,57 +86,58 @@
             </div>
         </article>
 
-        <!-- Card 2: Redis -->
-        <article class="service-diagnostic-card @(isRedisOnline ? "service-online" : "service-offline")" id="redisCard">
+        <!-- Card 2: IMemoryCache -->
+        <article class="service-diagnostic-card @(isCacheOnline ? "service-online" : "service-offline")" id="cacheCard">
             <div class="service-card-header">
                 <div class="service-title-box">
                     <span class="service-emoji">⚡</span>
                     <div>
-                        <h2>REDIS SERVER</h2>
-                        <span class="service-type-label">IN-MEMORY KEY-VALUE // STACKEXCHANGE.REDIS</span>
+                        <h2>MEMORYCACHE</h2>
+                        <span class="service-type-label">IN-PROCESS CACHE // MICROSOFT.EXTENSIONS.CACHING</span>
                     </div>
                 </div>
-                <div class="service-status-pill @(isRedisOnline ? "pill-online" : "pill-offline")" id="redisPill">
-                    <span class="status-indicator-dot" style="background: @(isRedisOnline ? "#30D158" : "#FF3B30");"></span>
-                    <span id="redisStatusText">@(isRedisOnline ? "ONLINE" : "OFFLINE")</span>
+                <div class="service-status-pill @(isCacheOnline ? "pill-online" : "pill-offline")" id="cachePill">
+                    <span class="status-indicator-dot" style="background: @(isCacheOnline ? "#30D158" : "#FF3B30");"></span>
+                    <span id="cacheStatusText">@(isCacheOnline ? "ONLINE" : "OFFLINE")</span>
                 </div>
             </div>
 
             <div class="service-card-body">
                 <div class="service-metric-row">
                     <div class="metric-box">
-                        <span class="metric-key">PING LATENCE:</span>
-                        <span class="metric-val" id="redisLatencyText">@Model.CheckResult.Redis.LatencyMs ms</span>
+                        <span class="metric-key">LATENCE:</span>
+                        <span class="metric-val" id="cacheLatencyText">@Model.CheckResult.Cache.LatencyMs ms</span>
                     </div>
                     <div class="metric-box">
-                        <span class="metric-key">STAV KONEKTIVITY:</span>
-                        <span class="metric-val" id="redisConnState">@(isRedisOnline ? "ÚSPĚŠNĚ PŘIPOJENO" : "NEPŘIPOJENO")</span>
+                        <span class="metric-key">STAV:</span>
+                        <span class="metric-val" id="cacheConnState">@(isCacheOnline ? "AKTIVNÍ" : "CHYBA")</span>
                     </div>
                 </div>
 
                 <div class="service-details-box">
                     <div class="detail-row">
-                        <span class="detail-k">ENDPOINT:</span>
-                        <span class="detail-v" id="redisEndpoint">@(Model.CheckResult.Redis.Details.GetValueOrDefault("Endpoint") ?? "-")</span>
+                        <span class="detail-k">TYP ÚLOŽIŠTĚ:</span>
+                        <span class="detail-v" id="cacheStorageType">@(Model.CheckResult.Cache.Details.GetValueOrDefault("StorageType") ?? "-")</span>
                     </div>
                     <div class="detail-row">
-                        <span class="detail-k">KLIENT:</span>
-                        <span class="detail-v" id="redisClient">@(Model.CheckResult.Redis.Details.GetValueOrDefault("ClientName") ?? "ASPNET_PLAYGROUND")</span>
+                        <span class="detail-k">CACHED ITEMS:</span>
+                        <span class="detail-v" id="cacheCachedItems">@(Model.CheckResult.Cache.Details.GetValueOrDefault("CachedItems") ?? "-")</span>
                     </div>
                     <div class="detail-row">
-                        <span class="detail-k">SDÍLENÝ KLÍČ LINKŮ:</span>
-                        <span class="detail-v">shared:links (LPUSH / LTRIM 50)</span>
+                        <span class="detail-k">MAX LIMIT:</span>
+                        <span class="detail-v">@(Model.CheckResult.Cache.Details.GetValueOrDefault("MaxLimit") ?? "-")</span>
                     </div>
                 </div>
 
                 <!-- Error Box -->
-                <div class="service-error-box" id="redisErrorBox" style="display: @(string.IsNullOrEmpty(Model.CheckResult.Redis.ErrorMessage) ? "none" : "block");">
+                <div class="service-error-box" id="cacheErrorBox" style="display: @(string.IsNullOrEmpty(Model.CheckResult.Cache.ErrorMessage) ? "none" : "block");">
                     <div class="error-badge">[ CHYBOVÁ HLÁŠKA ]</div>
-                    <p id="redisErrorMsg">@Model.CheckResult.Redis.ErrorMessage</p>
+                    <p id="cacheErrorMsg">@Model.CheckResult.Cache.ErrorMessage</p>
                 </div>
             </div>
         </article>
     </section>
+
 
     <!-- Environment Strip & JSON Output -->
     <section class="check-meta-section">

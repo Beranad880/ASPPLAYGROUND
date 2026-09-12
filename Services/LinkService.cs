@@ -1,102 +1,44 @@
-using System.Collections.Concurrent;
-using System.Text.Json;
-using StackExchange.Redis;
+using Microsoft.EntityFrameworkCore;
+using WebApplicationASP01.App;
 using WebApplicationASP01.Models;
 
 namespace WebApplicationASP01.Services;
 
 /// <summary>
-/// Služba pro správu sdílených textů/URL v Redis listu ("shared:links") s fallbackem a limitem 50 položek.
+/// Služba pro správu sdílených textů/URL v PostgreSQL tabulce shared_links (max 50 nejnovějších).
 /// </summary>
 public class LinkService
 {
-    public const string DefaultRedisKey = "shared:links";
     public const int MaxItems = 50;
-    public static readonly TimeSpan DefaultTtl = TimeSpan.FromDays(7);
 
-    private readonly IConnectionMultiplexer? _redis;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<LinkService> _logger;
 
-    // In-memory fallback pro situace, kdy Redis není dostupný
-    private readonly List<LinkEntry> _inMemoryFallback = new();
-    private readonly object _lock = new();
-
-    public LinkService(ILogger<LinkService> logger, IConnectionMultiplexer? redis = null)
+    public LinkService(IServiceScopeFactory scopeFactory, ILogger<LinkService> logger)
     {
+        _scopeFactory = scopeFactory;
         _logger = logger;
-        _redis = redis;
     }
 
-    /// <summary>
-    /// Ověří, zda je Redis aktivní a připojený.
-    /// </summary>
-    public bool IsRedisAvailable()
-    {
-        try
-        {
-            return _redis != null && _redis.IsConnected;
-        }
-        catch
-        {
-            return false;
-        }
-    }
+    private AppDbContext CreateDb(IServiceScope scope)
+        => scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     /// <summary>
-    /// Získá všechny uložené texty/URL seřazené od nejnovějšího.
+    /// Získá posledních 50 uložených textů/URL seřazených od nejnovějšího.
     /// </summary>
     public async Task<List<LinkEntry>> GetAllAsync()
     {
-        if (IsRedisAvailable())
-        {
-            try
-            {
-                var db = _redis!.GetDatabase();
-                var rawItems = await db.ListRangeAsync(DefaultRedisKey, 0, MaxItems - 1);
+        using var scope = _scopeFactory.CreateScope();
+        var db = CreateDb(scope);
 
-                var list = new List<LinkEntry>();
-                foreach (var rawItem in rawItems)
-                {
-                    if (rawItem.IsNullOrEmpty) continue;
-
-                    try
-                    {
-                        var entry = JsonSerializer.Deserialize<LinkEntry>(rawItem.ToString());
-                        if (entry != null)
-                        {
-                            list.Add(entry);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Chyba při deserializaci položky z Redis listu.");
-                    }
-                }
-
-                // Synchronizace do lokální in-memory paměti pro případ výpadku
-                lock (_lock)
-                {
-                    _inMemoryFallback.Clear();
-                    _inMemoryFallback.AddRange(list);
-                }
-
-                return list;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Výpadek čtení z Redis. Používám in-memory zálohu.");
-            }
-        }
-
-        // Fallback: In-memory kopie
-        lock (_lock)
-        {
-            return _inMemoryFallback.Take(MaxItems).ToList();
-        }
+        return await db.SharedLinks
+            .OrderByDescending(e => e.CreatedAt)
+            .Take(MaxItems)
+            .ToListAsync();
     }
 
     /// <summary>
-    /// Vloží nový text nebo URL odkaz na začátek seznamu v Redis (LPUSH), zkrátí na 50 (LTRIM) a nastaví TTL 7 dní (EXPIRE).
+    /// Vloží nový text nebo URL odkaz. Pokud počet přesáhne 50, nejstarší záznamy se smažou.
     /// </summary>
     public async Task<LinkEntry> CreateAsync(string content)
     {
@@ -111,167 +53,99 @@ public class LinkService
             IsUrl = LinkEntry.CheckIsUrl(trimmed)
         };
 
-        var json = JsonSerializer.Serialize(entry);
+        using var scope = _scopeFactory.CreateScope();
+        var db = CreateDb(scope);
 
-        if (IsRedisAvailable())
+        db.SharedLinks.Add(entry);
+        await db.SaveChangesAsync();
+
+        // Udržujeme max 50 položek — smažeme přebytečné nejstarší
+        var count = await db.SharedLinks.CountAsync();
+        if (count > MaxItems)
         {
-            try
-            {
-                var db = _redis!.GetDatabase();
+            var toDelete = await db.SharedLinks
+                .OrderBy(e => e.CreatedAt)
+                .Take(count - MaxItems)
+                .ToListAsync();
 
-                // 1. Vložení na začátek listu
-                await db.ListLeftPushAsync(DefaultRedisKey, json);
-
-                // 2. Omezení na posledních MaxItems (50) položek
-                await db.ListTrimAsync(DefaultRedisKey, 0, MaxItems - 1);
-
-                // 3. Nastavení expirace 7 dní
-                await db.KeyExpireAsync(DefaultRedisKey, DefaultTtl);
-
-                _logger.LogInformation("Nový odkaz (ID: {Id}, IsUrl: {IsUrl}) úspěšně uložen do Redis.", entry.Id, entry.IsUrl);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Nepodařilo se zapsat do Redis. Ukládám do in-memory paměti.");
-            }
+            db.SharedLinks.RemoveRange(toDelete);
+            await db.SaveChangesAsync();
         }
 
-        // Vždy uložíme i do in-memory fallbacku
-        lock (_lock)
-        {
-            _inMemoryFallback.Insert(0, entry);
-            if (_inMemoryFallback.Count > MaxItems)
-            {
-                _inMemoryFallback.RemoveRange(MaxItems, _inMemoryFallback.Count - MaxItems);
-            }
-        }
-
+        _logger.LogInformation("Nový odkaz (ID: {Id}, IsUrl: {IsUrl}) uložen do PostgreSQL.", entry.Id, entry.IsUrl);
         return entry;
     }
 
     /// <summary>
-    /// Smaže položku podle ID (GUID) nebo číselného indexu.
+    /// Smaže položku podle ID (GUID) nebo číselného indexu v seřazeném seznamu.
     /// </summary>
     public async Task<bool> DeleteAsync(string idOrIndex)
     {
         if (string.IsNullOrWhiteSpace(idOrIndex))
-        {
             return false;
-        }
 
-        var deletedFromRedis = false;
+        using var scope = _scopeFactory.CreateScope();
+        var db = CreateDb(scope);
 
-        if (IsRedisAvailable())
+        // 1. Pokus o smazání podle GUID
+        var byId = await db.SharedLinks
+            .FirstOrDefaultAsync(e => e.Id == idOrIndex);
+
+        if (byId != null)
         {
-            try
-            {
-                var db = _redis!.GetDatabase();
-                var rawItems = await db.ListRangeAsync(DefaultRedisKey, 0, -1);
-
-                RedisValue? itemToDelete = null;
-
-                // 1. Zkusíme najít podle ID v JSONu
-                foreach (var raw in rawItems)
-                {
-                    if (raw.IsNullOrEmpty) continue;
-                    try
-                    {
-                        var entry = JsonSerializer.Deserialize<LinkEntry>(raw.ToString());
-                        if (entry != null && string.Equals(entry.Id, idOrIndex, StringComparison.OrdinalIgnoreCase))
-                        {
-                            itemToDelete = raw;
-                            break;
-                        }
-                    }
-                    catch { }
-                }
-
-                // 2. Pokud nebylo nalezeno podle ID a idOrIndex je číslo, zkusíme index
-                if (itemToDelete == null && int.TryParse(idOrIndex, out var idx) && idx >= 0 && idx < rawItems.Length)
-                {
-                    itemToDelete = rawItems[idx];
-                }
-
-                if (itemToDelete.HasValue)
-                {
-                    var removedCount = await db.ListRemoveAsync(DefaultRedisKey, itemToDelete.Value, 1);
-                    deletedFromRedis = removedCount > 0;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Chyba při mazání z Redis.");
-            }
+            db.SharedLinks.Remove(byId);
+            await db.SaveChangesAsync();
+            return true;
         }
 
-        // Smazání i z in-memory paměti
-        var deletedFromMemory = false;
-        lock (_lock)
+        // 2. Pokud jde o číslo, smaž podle pozice v seřazeném seznamu
+        if (int.TryParse(idOrIndex, out var idx) && idx >= 0)
         {
-            var targetIndex = _inMemoryFallback.FindIndex(e => string.Equals(e.Id, idOrIndex, StringComparison.OrdinalIgnoreCase));
-            if (targetIndex >= 0)
+            var byIndex = await db.SharedLinks
+                .OrderByDescending(e => e.CreatedAt)
+                .Skip(idx)
+                .FirstOrDefaultAsync();
+
+            if (byIndex != null)
             {
-                _inMemoryFallback.RemoveAt(targetIndex);
-                deletedFromMemory = true;
-            }
-            else if (int.TryParse(idOrIndex, out var numIdx) && numIdx >= 0 && numIdx < _inMemoryFallback.Count)
-            {
-                _inMemoryFallback.RemoveAt(numIdx);
-                deletedFromMemory = true;
+                db.SharedLinks.Remove(byIndex);
+                await db.SaveChangesAsync();
+                return true;
             }
         }
 
-        return deletedFromRedis || deletedFromMemory;
+        return false;
     }
 
     /// <summary>
-    /// Smaže celý seznam v Redis a vyčistí in-memory paměť.
+    /// Smaže všechny záznamy z tabulky shared_links.
     /// </summary>
     public async Task<bool> ClearAllAsync()
     {
-        var redisSuccess = false;
-        if (IsRedisAvailable())
-        {
-            try
-            {
-                var db = _redis!.GetDatabase();
-                await db.KeyDeleteAsync(DefaultRedisKey);
-                redisSuccess = true;
-                _logger.LogInformation("Klíč Redis '{Key}' byl kompletně smazán.", DefaultRedisKey);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Nepodařilo se smazat klíč z Redis.");
-            }
-        }
+        using var scope = _scopeFactory.CreateScope();
+        var db = CreateDb(scope);
 
-        lock (_lock)
-        {
-            _inMemoryFallback.Clear();
-        }
-
-        return redisSuccess || true;
+        await db.SharedLinks.ExecuteDeleteAsync();
+        _logger.LogInformation("Tabulka shared_links byla kompletně vyprázdněna.");
+        return true;
     }
 
     /// <summary>
-    /// Vrátí stav Redis připojení a počet uložených položek.
+    /// Vrátí stav úložiště a počet uložených položek.
     /// </summary>
     public async Task<LinkServiceStatus> GetStatusAsync()
     {
-        var isConnected = IsRedisAvailable();
-        var items = await GetAllAsync();
+        using var scope = _scopeFactory.CreateScope();
+        var db = CreateDb(scope);
+
+        var count = await db.SharedLinks.CountAsync();
 
         return new LinkServiceStatus
         {
-            IsRedisConnected = isConnected,
-            StorageType = isConnected ? "Redis" : "InMemoryFallback",
-            Count = items.Count,
-            RedisKey = DefaultRedisKey,
+            StorageType = "PostgreSQL",
+            Count = count,
             MaxLimit = MaxItems,
-            TtlDays = (int)DefaultTtl.TotalDays,
-            Message = isConnected
-                ? "Redis je připojen a funkční."
-                : "Redis není dostupný. Aplikace běží v in-memory fallback režimu."
+            Message = "Záznamy jsou persistentně uloženy v PostgreSQL tabulce shared_links."
         };
     }
 }

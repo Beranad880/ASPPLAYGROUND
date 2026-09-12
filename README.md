@@ -1,11 +1,10 @@
 # ASPNET PLAYGROUND
 
-Tři nezávislé fullstack moduly v jedné aplikaci. Čistý výkon .NET 10, SignalR WebSockets, PostgreSQL a Redis. Hostováno na Railway s využitím multi-stage Docker buildů.
+Tři nezávislé fullstack moduly v jedné aplikaci. Čistý výkon .NET 10, SignalR WebSockets a PostgreSQL. Hostováno na Railway s využitím multi-stage Docker buildů.
 
 ## 🚀 Technologie
 - **Backend:** C# 13, .NET 10.0, ASP.NET Core
 - **Databáze:** PostgreSQL (Npgsql + Entity Framework Core 10)
-- **Cache & Message Broker:** Redis 7+ (StackExchange.Redis)
 - **Real-time:** SignalR (WebSockets duplex streaming)
 - **Frontend:** Razor Pages, čisté brutalistní UI, vanilla JS
 - **API Dokumentace:** Swagger / OpenAPI
@@ -26,25 +25,25 @@ Plnohodnotný asynchronní CRUD pro správu poznámek s živou synchronizací na
 - **Search (ILIKE):** Rychlé fulltext vyhledávání přes `/api/notes/search` rovnou v DB.
 
 ### 2. ⚡ SignalR Chat
-Real-time chatovací místnost fungující přes WebSockets s pamětí uchovávanou v Redisu.
+Real-time chatovací místnost fungující přes WebSockets s historií uchovávanou v paměti procesu.
 - **Auto Reconnect:** SignalR hlídá stabilitu spojení.
 - **Live Presence:** Ukazuje, kolik uživatelů je zrovna připojených (zelený indikátor).
 - **Audio FX:** Syntetizátor pípání ve Web Audio API upozorňující na novou zprávu.
-- **Redis Historie:** Posledních 100 zpráv (`LTRIM`), expirace po 7 dnech, klouzavá exspirace.
+- **In-Memory Historie:** Posledních 100 zpráv v `ConcurrentQueue` — živá po dobu běhu aplikace.
 
-### 3. 🔗 Redis Link Share
+### 3. 🔗 Link Share
 Nástroj pro bleskové sdílení odkazů mezi telefonem a počítačem, pokud jsou oba klienti na webu.
-- Data uložená pouze v rychlém in-memory **Redis** clusteru (`shared:links`).
-- Jakmile přidáte text, odkaz se přes Websocket (SignalR) hned ukáže u všech ostatních.
-- Omezena kapacita na 50 odkazů (`LTRIM 50`).
+- Data persistentně uložená v **PostgreSQL** tabulce `shared_links`.
+- Jakmile přidáte text, odkaz se přes WebSocket (SignalR) hned ukáže u všech ostatních.
+- Kapacita omezena na 50 odkazů — nejstarší se automaticky odstraní.
 
 ### 4. 🩺 Diagnostika & Zabezpečení
 Na adrese `/checks` naleznete "Brutalist" diagnostický dashboard, který v reálném čase reportuje:
-- Latenci a stav k PostgreSQL
-- Latenci a stav k Redisu
+- Latenci a stav PostgreSQL připojení
+- Stav a počet odkazů v `shared_links`
 - Využití paměti RAM a CPU Time
-- Stav integrovaného .NET **Rate Limiteru** (15 req/sec).
-- Možnost vyčíst hrubá data ve formátu JSON na `/api/check`.
+- Stav integrovaného .NET **Rate Limiteru** (15 req/sec)
+- Možnost vyčíst hrubá data ve formátu JSON na `/api/check`
 
 ---
 
@@ -59,6 +58,16 @@ Na adrese `/checks` naleznete "Brutalist" diagnostický dashboard, který v reá
 | `PUT` | `/api/notes/{id}` | Upraví existující poznámku podle GUID | `200 OK` / `400 Bad Request` / `404 Not Found` |
 | `DELETE` | `/api/notes/{id}` | Smaže poznámku podle GUID | `204 NoContent` / `404 Not Found` |
 
+## 🔗 Link Share API (`/api/links`)
+
+| Metoda | Endpoint | Popis | Návratový kód |
+|---|---|---|---|
+| `GET` | `/api/links` | Vrátí posledních 50 odkazů, řazené od nejnovějšího | `200 OK` |
+| `POST` | `/api/links` | Přidá nový text nebo URL | `201 Created` / `400 Bad Request` |
+| `GET` | `/api/links/status` | Stav úložiště a počet záznamů | `200 OK` |
+| `DELETE` | `/api/links/clear` | Smaže všechny záznamy | `200 OK` |
+| `DELETE` | `/api/links/{id}` | Smaže záznam podle GUID nebo indexu | `204 NoContent` / `404 Not Found` |
+
 ---
 
 ## 💻 Lokální vývoj
@@ -66,14 +75,13 @@ Na adrese `/checks` naleznete "Brutalist" diagnostický dashboard, který v reá
 ### Požadavky
 - .NET 10.0 SDK
 - PostgreSQL
-- Redis
 
 ### Spuštění
 ```bash
 # 1. Obnova a build
 dotnet build
 
-# 2. Vytvoření migrací / Aplikace schématu do DB
+# 2. Aplikace schématu do DB (migrace)
 dotnet ef database update
 
 # 3. Spuštění serveru

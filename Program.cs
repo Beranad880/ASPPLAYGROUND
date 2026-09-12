@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-using StackExchange.Redis;
 using WebApplicationASP01.App;
 using WebApplicationASP01.Extensions;
 using WebApplicationASP01.Hubs;
@@ -53,9 +52,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
-// Configure Custom Infrastructure (PostgreSQL & Redis)
+// Configure Custom Infrastructure (PostgreSQL)
 builder.Services.AddCustomPostgres();
-builder.Services.AddCustomRedis();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -84,16 +82,6 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         progLogger.LogWarning(ex, "Nepodařilo se spustit migrace PostgreSQL. Zkontrolujte připojení.");
-    }
-
-    var linkService = scope.ServiceProvider.GetRequiredService<LinkService>();
-    if (linkService.IsRedisAvailable())
-    {
-        progLogger.LogInformation("Redis spojení je aktivní a připravené pro /link.");
-    }
-    else
-    {
-        progLogger.LogWarning("Redis server není momentálně dostupný. /link bude používat in-memory záložní režim.");
     }
 }
 

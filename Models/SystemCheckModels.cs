@@ -16,8 +16,8 @@ public class SystemCheckResponse
     [JsonPropertyName("postgres")]
     public ServiceCheckResult Postgres { get; set; } = new();
 
-    [JsonPropertyName("redis")]
-    public ServiceCheckResult Redis { get; set; } = new();
+    [JsonPropertyName("cache")]
+    public ServiceCheckResult Cache { get; set; } = new();
 
     [JsonPropertyName("environment")]
     public AppEnvironmentInfo Environment { get; set; } = new();
